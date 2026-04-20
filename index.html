@@ -85,6 +85,7 @@
     .status-card strong{font-size:20px;font-variant-numeric:tabular-nums;}
     .toggles{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
     .inline{display:flex;gap:8px;align-items:center;}
+    .checkbox-row{flex-direction:row;align-items:center;justify-content:space-between;}
     .inline .compact-number{width:82px;text-align:right;}
     .size-opts{display:flex;gap:12px;flex-wrap:wrap;}
     .size-opts label{max-width:160px;}
@@ -94,6 +95,10 @@
     #targetBoard{flex:1;position:relative;background:#fff;height:100%;min-height:auto;overflow:hidden;}
     #targetBoard::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.08);}
     .board-area::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,0.05);}
+    body.board-dark .board-area,
+    body.board-dark #targetBoard{background:#000;color:#f2f6ff;}
+    body.board-dark #targetBoard::after{box-shadow:inset 0 0 0 1px rgba(255,255,255,0.1);}
+    body.board-dark .board-area::after{box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06);}
     .corner-controls{position:absolute;top:20px;right:20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;z-index:10;background:rgba(14,20,29,0.72);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:10px 12px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
     .corner-controls button{padding:10px 16px;border-radius:10px;font-size:14px;}
     .corner-controls .ghost{background:rgba(27,37,53,0.65);}
@@ -128,6 +133,19 @@
             </div>
           </div>
           <p class="note">Presets and the last-used settings stay on this device.</p>
+        </section>
+
+        <section class="panel" id="modePanel">
+          <h2>Mode</h2>
+          <div class="grid">
+            <label>Session mode
+              <select id="sessionMode">
+                <option value="board">Timed board</option>
+                <option value="continuous">Continuous flow</option>
+              </select>
+            </label>
+          </div>
+          <p class="note">Continuous flow ignores the timer and continuously moves targets across the screen until stopped.</p>
         </section>
 
         <section class="panel" id="timerPanel">
@@ -184,7 +202,7 @@
         <section class="panel" id="targetsPanel">
           <h2>Target board</h2>
           <div class="grid two">
-            <label>Number of targets
+            <label id="targetCountLabel">Number of targets
               <input type="number" id="targetCount" min="0" max="60" step="1" value="8" />
             </label>
             <label>Shape
@@ -196,7 +214,7 @@
             <label>Target color
               <input type="color" id="targetColor" value="#d62828" />
             </label>
-            <label>Arrangement
+            <label id="targetLayoutLabel">Arrangement
               <select id="targetLayout">
                 <option value="random">Random placement</option>
                 <option value="grid">Grid layout</option>
@@ -209,10 +227,18 @@
               Number targets
             </label>
             <label class="inline" style="color:var(--muted); font-size:13px;">
+              <input type="checkbox" id="randomTargetColors" />
+              Cycle bright colors
+            </label>
+            <label class="inline" style="color:var(--muted); font-size:13px;">
+              <input type="checkbox" id="darkBoard" />
+              Black background
+            </label>
+            <label class="inline" style="color:var(--muted); font-size:13px;">
               <input type="checkbox" id="randomSizes" />
               Randomize size
             </label>
-            <label class="inline" style="color:var(--muted); font-size:13px;">
+            <label class="inline" id="hideTargetsLabel" style="color:var(--muted); font-size:13px;">
               <input type="checkbox" id="hideTargets" />
               Hide until start beep
             </label>
@@ -232,6 +258,37 @@
           </div>
           <p class="note">Targets repopulate when settings change. Use the layout toggle for a grid and optionally hide them until the run starts.</p>
         </section>
+
+        <section class="panel" id="continuousPanel" hidden>
+          <h2>Continuous flow</h2>
+          <div class="grid two">
+            <label>Spawn source
+              <select id="flowEdge">
+                <option value="left">Left to right</option>
+                <option value="right">Right to left</option>
+                <option value="top">Top to bottom</option>
+                <option value="bottom">Bottom to top</option>
+                <option value="border">Around border</option>
+              </select>
+            </label>
+            <label>Start positions
+              <select id="flowPlacement">
+                <option value="random">Random along edge</option>
+                <option value="ordered">Ordered sequence</option>
+              </select>
+            </label>
+            <label class="checkbox-row">Alternate opposite edge
+              <input type="checkbox" id="flowAlternate" />
+            </label>
+            <label>Flow speed (px/s)
+              <input type="number" id="flowSpeed" min="10" max="3000" step="10" value="280" />
+            </label>
+            <label>Creation rate (targets/s)
+              <input type="number" id="flowRate" min="0.1" max="20" step="0.1" value="1.5" />
+            </label>
+          </div>
+          <p class="note">Continuous mode spawns targets from one edge or around the full border and moves them across the board until you press Stop. Enable alternating to swap between the selected edge and its opposite on each spawn.</p>
+        </section>
       </div>
     </aside>
 
@@ -250,15 +307,19 @@
       'use strict';
       var $ = function(id){ return document.getElementById(id); };
       var els = {
+        sessionMode: $('sessionMode'),
         delayMin: $('delayMin'), delayMax: $('delayMax'), workDuration: $('workDuration'),
         startFreq: $('startFreq'), startLen: $('startLen'), stopFreq: $('stopFreq'), stopLen: $('stopLen'),
         startBtn: $('startBtn'), stopBtn: $('stopBtn'), testStart: $('testStart'), testStop: $('testStop'),
         status: $('status'), countStart: $('countStart'), countStop: $('countStop'), selectedDelay: $('selectedDelay'),
         targetCount: $('targetCount'), targetShape: $('targetShape'), targetColor: $('targetColor'),
-        targetNumbered: $('targetNumbered'), randomSizes: $('randomSizes'), targetSize: $('targetSize'),
+        targetNumbered: $('targetNumbered'), randomTargetColors: $('randomTargetColors'), darkBoard: $('darkBoard'), randomSizes: $('randomSizes'), targetSize: $('targetSize'),
         targetSizeMin: $('targetSizeMin'), targetSizeMax: $('targetSizeMax'), targetBoard: $('targetBoard'),
         targetLayout: $('targetLayout'), hideTargets: $('hideTargets'),
         toggleMenu: $('toggleMenu'), configPane: $('configPane'),
+        timerPanel: $('timerPanel'), continuousPanel: $('continuousPanel'),
+        targetCountLabel: $('targetCountLabel'), targetLayoutLabel: $('targetLayoutLabel'), hideTargetsLabel: $('hideTargetsLabel'),
+        flowEdge: $('flowEdge'), flowPlacement: $('flowPlacement'), flowAlternate: $('flowAlternate'), flowSpeed: $('flowSpeed'), flowRate: $('flowRate'),
         presetSelect: $('presetSelect'), savePreset: $('savePreset'), deletePreset: $('deletePreset')
       };
 
@@ -269,7 +330,10 @@
       var rafId = 0;
       var plan = null;
       var awaitingReveal = false;
+      var continuousState = null;
+      var continuousRafId = 0;
       var root = document.body;
+      var BRIGHT_TARGET_COLORS = ['#d62828', '#f77f00', '#fcbf49', '#2a9d8f', '#00b4d8', '#3a86ff', '#8338ec', '#ff006e'];
 
       var STORAGE_KEY = 'targetTrainer_settings_v1';
       var PRESET_KEY = 'targetTrainer_presets_v1';
@@ -357,11 +421,19 @@
 
       function setBoardHidden(hidden){ if(els.targetBoard){ els.targetBoard.classList.toggle('targets-hidden', !!hidden); } }
 
+      function isContinuousMode(){
+        return !!(els.sessionMode && els.sessionMode.value === 'continuous');
+      }
+
       function updateMenuToggle(){
         if(!els.toggleMenu) return;
         var collapsed = root.classList.contains('menu-collapsed');
         els.toggleMenu.textContent = collapsed ? 'Show settings' : 'Hide settings';
         els.toggleMenu.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      }
+
+      function updateBoardTheme(){
+        root.classList.toggle('board-dark', !!(els.darkBoard && els.darkBoard.checked));
       }
 
       function setMenuCollapsed(collapsed){
@@ -374,6 +446,10 @@
       function formatSeconds(value){ return value > 0 ? value.toFixed(2) + ' s' : '0.00 s'; }
 
       async function startRun(){
+        if(isContinuousMode()){
+          startContinuousRun();
+          return;
+        }
         await ensureAudio();
         stopRun(true);
         var minDelay = Math.max(0, parseFloat(els.delayMin.value));
@@ -429,6 +505,7 @@
         clearTimers();
         cleanupNodes();
         plan = null;
+        stopContinuousRun(true);
         els.startBtn.disabled = false;
         els.stopBtn.disabled = true;
         els.countStart.textContent = '—';
@@ -440,6 +517,7 @@
       function stopRun(skipStatus){
         clearTimers();
         cleanupNodes();
+        stopContinuousRun(true);
         if(plan && !skipStatus){ setStatus('Stopped'); }
         plan = null;
         els.startBtn.disabled = false;
@@ -456,6 +534,9 @@
           var toStop = Math.max(0, plan.stopAt - now) / 1000;
           els.countStart.textContent = toStart > 0 ? formatSeconds(toStart) : '0.00 s';
           els.countStop.textContent = toStop > 0 ? formatSeconds(toStop) : '0.00 s';
+        } else if(continuousState){
+          els.countStart.textContent = '—';
+          els.countStop.textContent = '—';
         } else {
           els.countStart.textContent = '—';
           els.countStop.textContent = '—';
@@ -492,21 +573,57 @@
         return luminance > 0.55 ? '#111' : '#fff';
       }
 
-      function renderTargets(){
-        toggleSizeInputs();
-        var board = els.targetBoard;
-        if(!board) return;
-        board.innerHTML = '';
-        var count = Math.max(0, Math.floor(parseFloat(els.targetCount.value) || 0));
-        if(count === 0){ return; }
-        var shape = els.targetShape && els.targetShape.value === 'square' ? 'square' : 'circle';
-        var color = els.targetColor && els.targetColor.value ? els.targetColor.value : '#d62828';
-        var numbered = !!(els.targetNumbered && els.targetNumbered.checked);
+      function getTargetSizeConfig(){
         var random = !!(els.randomSizes && els.randomSizes.checked);
         var fixedSize = Math.max(10, parseFloat(els.targetSize.value) || 60);
         var minSize = Math.max(10, parseFloat(els.targetSizeMin.value) || 40);
         var maxSize = Math.max(10, parseFloat(els.targetSizeMax.value) || 100);
         if(maxSize < minSize){ var swap = minSize; minSize = maxSize; maxSize = swap; }
+        return {
+          random: random,
+          fixedSize: fixedSize,
+          minSize: minSize,
+          maxSize: maxSize
+        };
+      }
+
+      function sampleTargetSize(sizeConfig){
+        return sizeConfig.random ? randBetween(sizeConfig.minSize, sizeConfig.maxSize) : sizeConfig.fixedSize;
+      }
+
+      function updateModeUI(){
+        var continuous = isContinuousMode();
+        if(els.timerPanel){ els.timerPanel.hidden = continuous; }
+        if(els.continuousPanel){ els.continuousPanel.hidden = !continuous; }
+        if(els.targetCountLabel){ els.targetCountLabel.hidden = continuous; }
+        if(els.targetLayoutLabel){ els.targetLayoutLabel.hidden = continuous; }
+        if(els.hideTargetsLabel){ els.hideTargetsLabel.hidden = continuous; }
+        if(continuous){
+          els.selectedDelay.textContent = '—';
+          setBoardHidden(false);
+          awaitingReveal = false;
+          if(!continuousState){ setStatus('Idle'); }
+        }
+      }
+
+      function renderTargets(){
+        toggleSizeInputs();
+        var board = els.targetBoard;
+        if(!board) return;
+        board.innerHTML = '';
+        if(isContinuousMode()){
+          if(continuousState){ continuousState.targets = []; }
+          return;
+        }
+        var count = Math.max(0, Math.floor(parseFloat(els.targetCount.value) || 0));
+        if(count === 0){ return; }
+        var shape = els.targetShape && els.targetShape.value === 'square' ? 'square' : 'circle';
+        var numbered = !!(els.targetNumbered && els.targetNumbered.checked);
+        var sizeConfig = getTargetSizeConfig();
+        var random = sizeConfig.random;
+        var fixedSize = sizeConfig.fixedSize;
+        var minSize = sizeConfig.minSize;
+        var maxSize = sizeConfig.maxSize;
         var arrangement = els.targetLayout ? els.targetLayout.value : 'random';
         var labels = [];
         for(var n=1;n<=count;n++){ labels.push(n); }
@@ -520,7 +637,7 @@
           if(!boardW || !boardH){ boardW = window.innerWidth || 800; boardH = window.innerHeight || 600; }
         }
         if(arrangement === 'grid'){
-          renderGridTargets(board, count, shape, color, numbered, random, fixedSize, minSize, maxSize, boardW, boardH, gridLabels);
+          renderGridTargets(board, count, shape, numbered, random, fixedSize, minSize, maxSize, boardW, boardH, gridLabels);
           return;
         }
         var placements = [];
@@ -541,7 +658,7 @@
           }
           if(!best){ best = { left:0, top:0, penalty:0 }; }
           placements.push({ left:best.left, top:best.top, size:size });
-          createTargetElement(board, labels[i], size, best.left, best.top, shape, color, numbered);
+          createTargetElement(board, labels[i], size, best.left, best.top, shape, resolveTargetColor(i), numbered);
         }
       }
 
@@ -562,7 +679,7 @@
         return penalty;
       }
 
-      function renderGridTargets(board, count, shape, color, numbered, random, fixedSize, minSize, maxSize, boardW, boardH, labels){
+      function renderGridTargets(board, count, shape, numbered, random, fixedSize, minSize, maxSize, boardW, boardH, labels){
         var aspect = boardW && boardH ? boardW / boardH : 1;
         var cols = Math.max(1, Math.ceil(Math.sqrt(count * (aspect || 1))));
         var rows = Math.max(1, Math.ceil(count / cols));
@@ -582,8 +699,15 @@
           left = Math.min(Math.max(0, left), Math.max(0, boardW - size));
           top = Math.min(Math.max(0, top), Math.max(0, boardH - size));
           var label = labels && labels[i] != null ? labels[i] : (i + 1);
-          createTargetElement(board, label, size, left, top, shape, color, numbered);
+          createTargetElement(board, label, size, left, top, shape, resolveTargetColor(i), numbered);
         }
+      }
+
+      function resolveTargetColor(index){
+        if(els.randomTargetColors && els.randomTargetColors.checked){
+          return BRIGHT_TARGET_COLORS[((index || 0) % BRIGHT_TARGET_COLORS.length + BRIGHT_TARGET_COLORS.length) % BRIGHT_TARGET_COLORS.length];
+        }
+        return els.targetColor && els.targetColor.value ? els.targetColor.value : '#d62828';
       }
 
       function createTargetElement(board, label, size, left, top, shape, color, numbered){
@@ -603,10 +727,248 @@
           target.appendChild(span);
         }
         board.appendChild(target);
+        return target;
+      }
+
+      function getContinuousBoardMetrics(){
+        var board = els.targetBoard;
+        var rect = board.getBoundingClientRect();
+        var width = rect.width || window.innerWidth || 800;
+        var height = rect.height || window.innerHeight || 600;
+        return { width: width, height: height };
+      }
+
+      function orderedOffset(maxOffset, size){
+        if(maxOffset <= 0){ return 0; }
+        var step = Math.max(10, size);
+        var positions = [0];
+        var offset = step;
+        while(offset < maxOffset){
+          positions.push(offset);
+          offset += step;
+        }
+        if(positions[positions.length - 1] !== maxOffset){
+          positions.push(maxOffset);
+        }
+        if(positions.length === 1){
+          return positions[0];
+        }
+        var cycleLength = positions.length * 2 - 2;
+        var cycleIndex = continuousState.spawnIndex % cycleLength;
+        if(cycleIndex < positions.length){
+          return positions[cycleIndex];
+        }
+        return positions[cycleLength - cycleIndex];
+      }
+
+      function orderedLinearOffsetAt(maxOffset, size, index){
+        if(maxOffset <= 0){ return 0; }
+        var step = Math.max(10, size);
+        var positions = [0];
+        var offset = step;
+        while(offset < maxOffset){
+          positions.push(offset);
+          offset += step;
+        }
+        if(positions[positions.length - 1] !== maxOffset){
+          positions.push(maxOffset);
+        }
+        var safeIndex = Math.max(0, index || 0);
+        return positions[safeIndex % positions.length];
+      }
+
+      function orderedLinearOffset(maxOffset, size){
+        return orderedLinearOffsetAt(maxOffset, size, continuousState ? continuousState.spawnIndex : 0);
+      }
+
+      function oppositeEdge(edge){
+        if(edge === 'left') return 'right';
+        if(edge === 'right') return 'left';
+        if(edge === 'top') return 'bottom';
+        return 'top';
+      }
+
+      function borderPointFromOffset(metrics, offset){
+        var width = Math.max(0, metrics.width);
+        var height = Math.max(0, metrics.height);
+        var perimeter = Math.max(1, width * 2 + height * 2);
+        var cursor = ((offset % perimeter) + perimeter) % perimeter;
+
+        if(cursor <= width){
+          return { cx: cursor, cy: 0 };
+        }
+        cursor -= width;
+        if(cursor <= height){
+          return { cx: width, cy: cursor };
+        }
+        cursor -= height;
+        if(cursor <= width){
+          return { cx: width - cursor, cy: height };
+        }
+        cursor -= width;
+        return { cx: 0, cy: Math.max(0, height - cursor) };
+      }
+
+      function borderSpawnData(metrics, size, placement, alternateEdge){
+        var perimeter = Math.max(1, metrics.width * 2 + metrics.height * 2);
+        var offset = 0;
+        if(placement === 'ordered'){
+          if(alternateEdge){
+            var pairIndex = Math.floor((continuousState ? continuousState.spawnIndex : 0) / 2);
+            var baseOffset = orderedLinearOffsetAt(perimeter, size, pairIndex);
+            offset = (continuousState && (continuousState.spawnIndex % 2 === 1))
+              ? (baseOffset + perimeter / 2)
+              : baseOffset;
+          } else {
+            offset = orderedLinearOffset(perimeter, size);
+          }
+        } else {
+          offset = Math.random() * perimeter;
+        }
+        var point = borderPointFromOffset(metrics, offset);
+        var targetCx = metrics.width - point.cx;
+        var targetCy = metrics.height - point.cy;
+        var dx = targetCx - point.cx;
+        var dy = targetCy - point.cy;
+        var distance = Math.hypot(dx, dy) || 1;
+        return {
+          x: point.cx - size / 2,
+          y: point.cy - size / 2,
+          dirX: dx / distance,
+          dirY: dy / distance
+        };
+      }
+
+      function createContinuousTarget(){
+        if(!continuousState || !els.targetBoard) return;
+        var metrics = getContinuousBoardMetrics();
+        var shape = els.targetShape && els.targetShape.value === 'square' ? 'square' : 'circle';
+        var numbered = !!(els.targetNumbered && els.targetNumbered.checked);
+        var speed = Math.max(10, parseFloat(els.flowSpeed.value) || 0);
+        var startEdge = els.flowEdge && els.flowEdge.value ? els.flowEdge.value : 'left';
+        var alternateEdge = !!(els.flowAlternate && els.flowAlternate.checked);
+        var placement = els.flowPlacement && els.flowPlacement.value ? els.flowPlacement.value : 'random';
+        var size = Math.max(10, sampleTargetSize(getTargetSizeConfig()));
+        var x = 0;
+        var y = 0;
+        var vx = 0;
+        var vy = 0;
+        if(startEdge === 'border'){
+          var border = borderSpawnData(metrics, size, placement, alternateEdge);
+          x = border.x;
+          y = border.y;
+          vx = border.dirX * speed;
+          vy = border.dirY * speed;
+        } else {
+          var edge = alternateEdge && (continuousState.spawnIndex % 2 === 1) ? oppositeEdge(startEdge) : startEdge;
+          var maxOffset = (edge === 'left' || edge === 'right') ? Math.max(0, metrics.height - size) : Math.max(0, metrics.width - size);
+          var offset = placement === 'ordered'
+            ? (alternateEdge ? orderedLinearOffset(maxOffset, size) : orderedOffset(maxOffset, size))
+            : Math.random() * maxOffset;
+
+          if(edge === 'left'){
+            x = -size;
+            y = offset;
+            vx = speed;
+          } else if(edge === 'right'){
+            x = metrics.width;
+            y = offset;
+            vx = -speed;
+          } else if(edge === 'top'){
+            x = offset;
+            y = -size;
+            vy = speed;
+          } else {
+            x = offset;
+            y = metrics.height;
+            vy = -speed;
+          }
+        }
+
+        continuousState.spawnIndex += 1;
+        var label = continuousState.nextLabel;
+        continuousState.nextLabel += 1;
+        var el = createTargetElement(els.targetBoard, label, size, x, y, shape, resolveTargetColor(continuousState.spawnIndex - 1), numbered);
+        continuousState.targets.push({ el: el, x: x, y: y, vx: vx, vy: vy, size: size });
+      }
+
+      function stepContinuousTargets(now){
+        if(!continuousState){
+          continuousRafId = 0;
+          return;
+        }
+        if(!continuousState.lastFrame){ continuousState.lastFrame = now; }
+        var dt = Math.max(0, (now - continuousState.lastFrame) / 1000);
+        continuousState.lastFrame = now;
+        var metrics = getContinuousBoardMetrics();
+        var rate = Math.max(0.1, parseFloat(els.flowRate.value) || 0);
+        continuousState.spawnAccumulator += dt * rate;
+        while(continuousState.spawnAccumulator >= 1){
+          createContinuousTarget();
+          continuousState.spawnAccumulator -= 1;
+        }
+
+        var survivors = [];
+        for(var i=0;i<continuousState.targets.length;i++){
+          var target = continuousState.targets[i];
+          target.x += target.vx * dt;
+          target.y += target.vy * dt;
+          var outOfBounds = (
+            target.x > metrics.width + target.size ||
+            target.x + target.size < 0 ||
+            target.y > metrics.height + target.size ||
+            target.y + target.size < 0
+          );
+          if(outOfBounds){
+            if(target.el && target.el.parentNode){ target.el.parentNode.removeChild(target.el); }
+            continue;
+          }
+          target.el.style.left = target.x.toFixed(2) + 'px';
+          target.el.style.top = target.y.toFixed(2) + 'px';
+          survivors.push(target);
+        }
+        continuousState.targets = survivors;
+        continuousRafId = window.requestAnimationFrame(stepContinuousTargets);
+      }
+
+      function startContinuousRun(){
+        stopRun(true);
+        renderTargets();
+        continuousState = {
+          running: true,
+          lastFrame: 0,
+          spawnAccumulator: 1,
+          spawnIndex: 0,
+          nextLabel: 1,
+          targets: []
+        };
+        els.startBtn.disabled = true;
+        els.stopBtn.disabled = false;
+        els.selectedDelay.textContent = '—';
+        setBoardHidden(false);
+        awaitingReveal = false;
+        setStatus('Continuous flow active');
+        setMenuCollapsed(true);
+        continuousRafId = window.requestAnimationFrame(stepContinuousTargets);
+      }
+
+      function stopContinuousRun(skipStatus){
+        if(continuousRafId){
+          window.cancelAnimationFrame(continuousRafId);
+          continuousRafId = 0;
+        }
+        if(continuousState && continuousState.targets){
+          continuousState.targets.forEach(function(target){
+            if(target.el && target.el.parentNode){ target.el.parentNode.removeChild(target.el); }
+          });
+        }
+        if(continuousState && !skipStatus){ setStatus('Stopped'); }
+        continuousState = null;
       }
 
       function currentSettings(){
         return {
+          sessionMode: els.sessionMode ? els.sessionMode.value : 'board',
           delayMin: parseFloat(els.delayMin.value) || 0,
           delayMax: parseFloat(els.delayMax.value) || 0,
           workDuration: parseFloat(els.workDuration.value) || 0,
@@ -619,11 +981,18 @@
           targetColor: els.targetColor.value,
           targetLayout: els.targetLayout.value,
           targetNumbered: !!els.targetNumbered.checked,
+          randomTargetColors: !!(els.randomTargetColors && els.randomTargetColors.checked),
+          darkBoard: !!(els.darkBoard && els.darkBoard.checked),
           randomSizes: !!els.randomSizes.checked,
           hideTargets: !!els.hideTargets.checked,
           targetSize: parseFloat(els.targetSize.value) || 0,
           targetSizeMin: parseFloat(els.targetSizeMin.value) || 0,
-          targetSizeMax: parseFloat(els.targetSizeMax.value) || 0
+          targetSizeMax: parseFloat(els.targetSizeMax.value) || 0,
+          flowEdge: els.flowEdge ? els.flowEdge.value : 'left',
+          flowPlacement: els.flowPlacement ? els.flowPlacement.value : 'random',
+          flowAlternate: !!(els.flowAlternate && els.flowAlternate.checked),
+          flowSpeed: parseFloat(els.flowSpeed.value) || 0,
+          flowRate: parseFloat(els.flowRate.value) || 0
         };
       }
 
@@ -634,6 +1003,7 @@
         function assignNumber(el, val){ if(!el || val == null || val === '') return; el.value = val; }
         function assignCheckbox(el, val){ if(!el || val === undefined) return; el.checked = !!val; }
 
+        assignValue(els.sessionMode, state.sessionMode);
         assignNumber(els.delayMin, state.delayMin);
         assignNumber(els.delayMax, state.delayMax);
         assignNumber(els.workDuration, state.workDuration);
@@ -646,12 +1016,21 @@
         assignValue(els.targetColor, state.targetColor);
         assignValue(els.targetLayout, state.targetLayout);
         assignCheckbox(els.targetNumbered, state.targetNumbered);
+        assignCheckbox(els.randomTargetColors, state.randomTargetColors);
+        assignCheckbox(els.darkBoard, state.darkBoard);
         assignCheckbox(els.randomSizes, state.randomSizes);
         assignCheckbox(els.hideTargets, state.hideTargets);
         assignNumber(els.targetSize, state.targetSize);
         assignNumber(els.targetSizeMin, state.targetSizeMin);
         assignNumber(els.targetSizeMax, state.targetSizeMax);
+        assignValue(els.flowEdge, state.flowEdge);
+        assignValue(els.flowPlacement, state.flowPlacement);
+        assignCheckbox(els.flowAlternate, state.flowAlternate);
+        assignNumber(els.flowSpeed, state.flowSpeed);
+        assignNumber(els.flowRate, state.flowRate);
 
+        updateModeUI();
+        updateBoardTheme();
         toggleSizeInputs();
         renderTargets();
         if(!opts.skipSave){ persist(); }
@@ -680,7 +1059,9 @@
         $('randomSizeOptions').hidden = !random;
       }
 
-      function handleResize(){ renderTargets(); }
+      function handleResize(){
+        if(!continuousState){ renderTargets(); }
+      }
 
       els.startBtn.addEventListener('click', function(){ startRun(); });
       els.stopBtn.addEventListener('click', function(){ stopRun(false); });
@@ -693,6 +1074,15 @@
         input.addEventListener('change', persist);
       });
 
+      if(els.sessionMode){
+        els.sessionMode.addEventListener('change', function(){
+          stopRun(true);
+          updateModeUI();
+          renderTargets();
+          persist();
+        });
+      }
+
       ['targetCount','targetShape','targetColor','targetSize','targetSizeMin','targetSizeMax','targetLayout'].forEach(function(id){
         var input = $(id);
         if(!input) return;
@@ -700,7 +1090,22 @@
         input.addEventListener('change', function(){ renderTargets(); persist(); });
       });
       els.targetNumbered.addEventListener('change', function(){ renderTargets(); persist(); });
+      if(els.randomTargetColors){
+        els.randomTargetColors.addEventListener('change', function(){ renderTargets(); persist(); });
+      }
+      if(els.darkBoard){
+        els.darkBoard.addEventListener('change', function(){ updateBoardTheme(); persist(); });
+      }
       els.randomSizes.addEventListener('change', function(){ toggleSizeInputs(); renderTargets(); persist(); });
+      ['flowEdge','flowPlacement','flowSpeed','flowRate'].forEach(function(id){
+        var input = $(id);
+        if(!input) return;
+        input.addEventListener('input', persist);
+        input.addEventListener('change', persist);
+      });
+      if(els.flowAlternate){
+        els.flowAlternate.addEventListener('change', persist);
+      }
       if(els.hideTargets){
         els.hideTargets.addEventListener('change', function(){
           if(plan){
@@ -767,12 +1172,14 @@
       if(initialSettings && Object.keys(initialSettings).length){
         applySettings(initialSettings, { skipSave: true });
       } else {
+        updateModeUI();
         toggleSizeInputs();
         renderTargets();
         persist();
       }
 
       setBoardHidden(false);
+      updateModeUI();
       updateMenuToggle();
       window.requestAnimationFrame(function(){ renderTargets(); });
     })();
