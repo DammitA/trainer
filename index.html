@@ -1,8 +1,8 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Target Training App</title>
   <style>
     :root{
@@ -18,6 +18,7 @@
       --pane-width:380px;
     }
     *{box-sizing:border-box;}
+    [hidden]{display:none !important;}
     html, body{height:100%;}
     body{
       margin:0;
@@ -36,6 +37,7 @@
       background:#101827;border:1px solid var(--panel-border);border-radius:10px;padding:8px 12px;
       color:var(--text);
     }
+    label.grid-overridden{color:#ff7a85;}
     input[type=color]{width:48px;height:38px;border:1px solid var(--panel-border);border-radius:10px;padding:2px;background:#101827;}
     input[type=checkbox]{margin-right:6px;accent-color:var(--accent);}
     button{border:0;border-radius:12px;padding:12px 20px;font-weight:600;cursor:pointer;transition:transform .15s ease,filter .15s ease,opacity .15s ease;}
@@ -51,7 +53,7 @@
       flex:0 0 min(var(--pane-width), 90vw);
       background:var(--panel);
       border-right:1px solid var(--panel-border);
-      padding:24px 24px 32px;
+      padding:17px 17px 22px;
       overflow-y:auto;
       transition:transform .3s ease,box-shadow .3s ease;
       transform:translateX(0);
@@ -69,27 +71,120 @@
     }
     body.menu-collapsed .config-pane .config-scroll{opacity:0;}
     body:not(.menu-collapsed) .config-pane .config-scroll{opacity:1;transition:opacity .2s ease;}
-    .config-scroll{display:grid;gap:18px;transition:opacity .2s ease;opacity:1;}
-    .config-header p{margin-top:6px;color:var(--muted);font-size:14px;line-height:1.45;}
-    .panel{background:rgba(16,24,39,0.72);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:18px;box-shadow:0 12px 32px rgba(0,0,0,0.28);}
+    .config-scroll{display:grid;gap:13px;transition:opacity .2s ease;opacity:1;}
+    .config-header p{margin-top:4px;color:var(--muted);font-size:14px;line-height:1.45;}
+    .panel{background:rgba(16,24,39,0.72);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:13px;box-shadow:0 12px 32px rgba(0,0,0,0.28);}
     .panel h2{color:var(--muted);}
-    .grid{display:grid;gap:14px;}
+    #targetsPanel label{margin-top:6px;}
+    #targetsPanel .toggles label{margin-top:8px;}
+    #targetsPanel .grid label{margin-top:0;}
+    .grid{display:grid;gap:10px;}
     .grid.two{grid-template-columns:repeat(auto-fit,minmax(220px,1fr));}
-    .actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:14px;}
-    .preset-controls{display:flex;flex-direction:column;gap:12px;}
-    .preset-actions{display:flex;gap:10px;flex-wrap:wrap;}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;}
+    .preset-controls{display:flex;flex-direction:column;gap:8px;}
+    .preset-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}
+    .preset-actions .preset-save{grid-column:1 / -1;}
+    .preset-actions .preset-secondary{font-size:12px;padding:9px 10px;}
     .preset-controls select{width:100%;}
-    .status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:16px;}
-    .status-card{background:#101827;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:12px;display:grid;gap:4px;}
+    .status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-top:11px;}
+    .status-card{background:#101827;border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:8px;display:grid;gap:3px;}
     .status-card span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;}
     .status-card strong{font-size:20px;font-variant-numeric:tabular-nums;}
-    .toggles{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
-    .inline{display:flex;gap:8px;align-items:center;}
+    .toggles{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+    .inline{display:flex;gap:6px;align-items:center;}
+    .toggle-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;margin-top:8px;}
+    .toggle-grid.three{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .toggle-btn{
+      width:100%;
+      min-height:42px;
+      border:1px solid var(--panel-border);
+      border-radius:12px;
+      padding:10px 12px;
+      background:#1b2535;
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      font-size:13px;
+      line-height:1.2;
+      white-space:normal;
+      box-shadow:none;
+    }
+    .size-opts > .toggle-btn{flex:1 1 100%;}
+    .toggle-btn.active{
+      background:var(--accent);
+      color:#021126;
+      border-color:transparent;
+    }
+    .toggle-btn.inactive{
+      background:#1b2535;
+      color:var(--text);
+    }
+    .toggle-btn.soft.active{
+      background:#e9f0ff;
+      color:#081221;
+      border-color:#c6d5f5;
+    }
+    .toggle-btn.soft.inactive{
+      background:#162030;
+      color:#d7e2f3;
+      border-color:#26344a;
+    }
+    .toggle-btn:disabled{
+      opacity:0.7;
+      cursor:not-allowed;
+      transform:none;
+    }
+    input.grid-overridden{
+      color:#ff7a85;
+      border-color:#7a2835;
+      background:#201019;
+      caret-color:#ff7a85;
+    }
     .checkbox-row{flex-direction:row;align-items:center;justify-content:space-between;}
     .inline .compact-number{width:82px;text-align:right;}
-    .size-opts{display:flex;gap:12px;flex-wrap:wrap;}
+    .size-opts{display:flex;gap:8px;flex-wrap:wrap;}
     .size-opts label{max-width:160px;}
+    #gridSpread:disabled,#swingTargetHeight:disabled,#swingAxisHeight:disabled{opacity:0.45;background:#0b111c;color:#61708a;border-color:#192335;cursor:not-allowed;}
     .note{font-size:12px;color:var(--muted);margin-top:6px;}
+    .help-launch{margin-top:10px;padding:0;background:transparent;border:0;box-shadow:none;}
+    .help-launch button{width:100%;}
+    .calibrate-launch{margin-top:8px;}
+    .calibrate-launch button{width:100%;}
+    .calibration-stage{display:grid;gap:14px;justify-items:center;margin:18px 0;}
+    .calibration-card{background:#f6f7fb;border:2px solid #111;border-radius:10px;box-shadow:0 12px 28px rgba(0,0,0,0.3);}
+    .calibration-controls{display:grid;gap:10px;max-width:360px;margin:0 auto;}
+    .calibration-status{min-height:1.35em;color:var(--muted);font-size:13px;text-align:center;}
+    .calibration-indicator{margin-top:4px;font-size:12px;text-align:center;color:var(--muted);}
+    .calibration-state-missing{color:#ff7a85;}
+    .calibration-state-ready{color:#58d68d;}
+    .distance-scale-controls{display:grid;gap:8px;width:100%;}
+    .distance-summary{color:var(--muted);font-size:12px;line-height:1.35;}
+    .help-overlay{position:fixed;inset:0;z-index:40;background:rgba(4,8,14,0.72);display:flex;align-items:center;justify-content:center;padding:28px;}
+    .help-dialog{width:min(1120px,96vw);max-height:92vh;overflow:auto;background:#101827;border:1px solid rgba(255,255,255,0.14);border-radius:18px;box-shadow:0 28px 80px rgba(0,0,0,0.55);padding:24px;}
+    .help-header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px;}
+    .help-header h2{margin:0;color:var(--text);font-size:24px;}
+    .help-header p{margin-top:6px;color:var(--muted);line-height:1.45;}
+    .shortcut-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 18px;}
+    .shortcut-card{background:#172236;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;min-width:0;}
+    .shortcut-card strong{font-size:13px;color:var(--text);white-space:nowrap;}
+    .shortcut-card span{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .flow-diagram{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+    .flow-column{background:#141d2a;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px;display:grid;gap:12px;align-content:start;}
+    .flow-column h3{margin:0;color:var(--text);font-size:18px;}
+    .flow-node{border:1px solid rgba(62,168,255,0.26);background:rgba(62,168,255,0.08);border-radius:12px;padding:11px;position:relative;}
+    .flow-node:not(:last-child)::after{content:"";position:absolute;left:50%;bottom:-13px;width:2px;height:13px;background:rgba(62,168,255,0.35);}
+    .flow-node strong{display:block;color:var(--text);font-size:14px;margin-bottom:5px;}
+    .flow-node span,.flow-node li{color:var(--muted);font-size:13px;line-height:1.35;}
+    .flow-node ul{margin:0;padding-left:18px;}
+    .flow-note{margin-top:16px;color:var(--muted);font-size:13px;line-height:1.45;}
+    @media (max-width:900px){
+      .help-overlay{padding:14px;}
+      .help-dialog{padding:18px;}
+      .flow-diagram,.shortcut-strip{grid-template-columns:1fr;}
+      .help-header{align-items:stretch;flex-direction:column;}
+    }
 
     .board-area{flex:1;position:relative;background:#fff;color:#111;display:flex;height:100vh;overflow:hidden;}
     #targetBoard{flex:1;position:relative;background:#fff;height:100%;min-height:auto;overflow:hidden;}
@@ -106,6 +201,10 @@
     .target{position:absolute;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;line-height:1;pointer-events:none;user-select:none;transition:transform .3s ease,opacity .3s ease;box-shadow:0 10px 24px rgba(0,0,0,0.22);}
     .target.circle{border-radius:50%;}
     .target.square{border-radius:12px;}
+    .target.d1,.target.uspsa,.target.ipsc-mini,.target.bowling-pin{background:transparent;box-shadow:none;overflow:visible;}
+    .target.d1 svg,.target.uspsa svg,.target.ipsc-mini svg,.target.bowling-pin svg{position:absolute;inset:0;width:100%;height:100%;display:block;filter:drop-shadow(0 10px 18px rgba(0,0,0,0.22));}
+    .target.d1 span,.target.uspsa span,.target.ipsc-mini span,.target.bowling-pin span{position:relative;z-index:1;}
+    .target.swinger-target{transition:opacity .3s ease;transform-origin:center center;}
     .target span{display:flex;align-items:center;justify-content:center;padding:0.2em 0.5em;border-radius:0.6em;background:rgba(0,0,0,0.25);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);min-width:1.4em;}
     #targetBoard.targets-hidden .target{opacity:0;}
     @media (max-width:720px){
@@ -114,22 +213,32 @@
     }
   </style>
 </head>
-<body class="menu-collapsed">
+<body class="">
   <main class="app">
     <aside id="configPane" class="config-pane">
       <div class="config-scroll">
         <div class="panel config-header">
           <h1>Target Training App</h1>
           <p>Randomize the start cue, follow with a stop cue, and populate a configurable target board for visual drills.</p>
+          <div class="help-launch" id="helpPanel">
+            <button id="helpBtn" class="ghost" type="button">Help</button>
+          </div>
+          <div class="calibrate-launch" id="calibratePanel">
+            <button id="calibrateBtn" class="ghost" type="button">Calibrate Screen</button>
+            <div id="calibrationIndicator" class="calibration-indicator"></div>
+          </div>
         </div>
 
         <section class="panel" id="presetPanel">
           <h2>Presets</h2>
           <div class="preset-controls">
-            <select id="presetSelect" title="Load a preset"></select>
+            <select id="presetSelect" title="Load a preset"><option value="" selected="selected">Load preset…</option></select>
             <div class="preset-actions">
-              <button id="savePreset" class="ghost" type="button">Save Preset</button>
-              <button id="deletePreset" class="danger" type="button">Delete Preset</button>
+              <button id="savePreset" class="ghost preset-save" type="button">Save Preset</button>
+              <button id="exportPresets" class="ghost preset-secondary" type="button">Export</button>
+              <button id="importPresets" class="ghost preset-secondary" type="button">Import</button>
+              <button id="deletePreset" class="danger preset-secondary" type="button">Delete</button>
+              <input id="importPresetFile" type="file" accept=".csv,text/csv" hidden>
             </div>
           </div>
           <p class="note">Presets and the last-used settings stay on this device.</p>
@@ -140,38 +249,63 @@
           <div class="grid">
             <label>Session mode
               <select id="sessionMode">
-                <option value="board">Timed board</option>
+                <option value="board" selected="selected">Timed board</option>
                 <option value="continuous">Continuous flow</option>
+                <option value="swinger">Swinger</option>
               </select>
             </label>
           </div>
-          <p class="note">Continuous flow ignores the timer and continuously moves targets across the screen until stopped.</p>
         </section>
 
         <section class="panel" id="timerPanel">
           <h2>Timing &amp; Beeps</h2>
           <div class="grid two">
+            <label>Timer mode
+              <select id="timerMode">
+                <option value="single" selected="selected">Single Par Time</option>
+                <option value="reload">Reload separated par</option>
+                <option value="shot">Shot Defined Par</option>
+              </select>
+            </label>
             <label>Random start delay (s)
               <div class="inline">
-                <input type="number" class="compact-number" id="delayMin" min="0" step="0.1" value="1.0" placeholder="Min" />
+                <input type="number" class="compact-number" id="delayMin" min="0" step="0.1" value="1.0" placeholder="Min">
                 <span style="color:var(--muted);">to</span>
-                <input type="number" class="compact-number" id="delayMax" min="0" step="0.1" value="3.0" placeholder="Max" />
+                <input type="number" class="compact-number" id="delayMax" min="0" step="0.1" value="3.0" placeholder="Max">
               </div>
             </label>
-            <label>Work window after start (s)
-              <input type="number" id="workDuration" min="0" step="0.1" value="5.0" />
+            <label id="workDurationLabel">Time to engage (s)
+              <input type="number" id="workDuration" min="0" step="0.1" value="5.0">
             </label>
-            <label>Start beep frequency (Hz)
-              <input type="number" id="startFreq" min="200" max="4000" step="1" value="950" />
+            <label id="firstShotTimeLabel">First shot time (s)
+              <input type="number" id="firstShotTime" min="0.1" max="3" step="0.01" value="0.75">
+            </label>
+            <label id="shotCountLabel">Shots per string
+              <input type="number" id="shotCount" min="1" max="10" step="1" value="6">
+            </label>
+            <label id="shotSplitLabel">Split time (s)
+              <input type="number" id="shotSplit" min="0.1" max="10" step="0.01" value="0.25">
+            </label>
+            <label id="repeatsLabel">Reloads
+              <input type="number" id="repeats" min="0" step="1" value="0">
+            </label>
+            <label id="shotReloadsLabel">Reloads
+              <input type="number" id="shotReloads" min="0" max="3" step="1" value="0">
+            </label>
+            <label id="reloadTimeLabel">Reload time (s)
+              <input type="number" id="reloadTime" min="0" step="0.1" value="0.0">
+            </label>
+            <label>Start/draw beep frequency (Hz)
+              <input type="number" id="startFreq" min="200" max="4000" step="1" value="950">
             </label>
             <label>Start beep length (s)
-              <input type="number" id="startLen" min="0.05" max="1.0" step="0.01" value="0.20" />
+              <input type="number" id="startLen" min="0.05" max="1.0" step="0.01" value="0.20">
             </label>
-            <label>Stop beep frequency (Hz)
-              <input type="number" id="stopFreq" min="200" max="4000" step="1" value="1200" />
+            <label>Stop/shot beep frequency (Hz)
+              <input type="number" id="stopFreq" min="200" max="4000" step="1" value="1200">
             </label>
-            <label>Stop beep length (s)
-              <input type="number" id="stopLen" min="0.05" max="1.5" step="0.01" value="0.25" />
+            <label>Stop/shot beep length (s)
+              <input type="number" id="stopLen" min="0.05" max="1.5" step="0.01" value="0.25">
             </label>
           </div>
           <div class="actions">
@@ -203,68 +337,90 @@
           <h2>Target board</h2>
           <div class="grid two">
             <label id="targetCountLabel">Number of targets
-              <input type="number" id="targetCount" min="0" max="60" step="1" value="8" />
+              <input type="number" id="targetCount" min="0" max="60" step="1" value="8">
             </label>
             <label>Shape
               <select id="targetShape">
-                <option value="circle">Circle</option>
+                <option value="circle" selected="selected">Circle</option>
                 <option value="square">Square</option>
+                <option value="d1">NRA D1</option>
+                <option value="uspsa">USPSA</option>
+                <option value="ipsc-mini">IPSC Mini</option>
+                <option value="bowling-pin">Bowling pin</option>
               </select>
             </label>
-            <label>Target color
-              <input type="color" id="targetColor" value="#d62828" />
+            <label id="targetColorLabel">Target color
+              <input type="color" id="targetColor" value="#d62828">
             </label>
             <label id="targetLayoutLabel">Arrangement
               <select id="targetLayout">
-                <option value="random">Random placement</option>
+                <option value="random" selected="selected">Random placement</option>
                 <option value="grid">Grid layout</option>
               </select>
             </label>
           </div>
-          <div class="toggles">
-            <label class="inline" style="color:var(--muted); font-size:13px;">
-              <input type="checkbox" id="targetNumbered" checked />
-              Number targets
+          <div class="toggle-grid" id="targetToggleGrid">
+            <button type="button" class="toggle-btn" id="targetNumberedBtn" aria-pressed="true">Number targets</button>
+            <button type="button" class="toggle-btn" id="randomTargetColorsBtn" aria-pressed="false">Cycle bright colors</button>
+            <button type="button" class="toggle-btn" id="darkBoardBtn" aria-pressed="false">Black background</button>
+            <button type="button" class="toggle-btn" id="randomSizesBtn" aria-pressed="false">Randomize size</button>
+            <button type="button" class="toggle-btn" id="hideTargetsBtn" aria-pressed="false">Hide until start beep</button>
+            <button type="button" class="toggle-btn" id="useDistanceScaleBtn" aria-pressed="false">Size by distance</button>
+            <input type="checkbox" id="targetNumbered" checked="checked" hidden>
+            <input type="checkbox" id="randomTargetColors" hidden>
+            <input type="checkbox" id="darkBoard" hidden>
+            <input type="checkbox" id="randomSizes" hidden>
+            <input type="checkbox" id="hideTargets" hidden>
+            <input type="checkbox" id="useDistanceScale" hidden>
+          </div>
+          <div class="size-opts" id="distanceScaleOptions" hidden="">
+            <div class="distance-scale-controls">
+              <label id="screenDistanceLabel">Distance from screen (ft)
+                <input type="number" id="screenDistanceFt" min="0.1" max="50" step="0.1" value="2">
+              </label>
+              <label id="targetDistanceLabel">Desired target distance (yd)
+                <input type="number" id="targetDistanceYd" min="0.1" max="1000" step="0.1" value="10">
+              </label>
+              <div class="distance-summary" id="distanceScaleSummary"></div>
+            </div>
+          </div>
+          <div class="size-opts" id="gridOptions" hidden="">
+            <label id="gridRowsLabel">Rows
+              <input type="number" id="gridRows" min="1" max="8" step="1" value="">
             </label>
-            <label class="inline" style="color:var(--muted); font-size:13px;">
-              <input type="checkbox" id="randomTargetColors" />
-              Cycle bright colors
+            <label id="gridColsLabel">Columns
+              <input type="number" id="gridCols" min="1" max="8" step="1" value="">
             </label>
-            <label class="inline" style="color:var(--muted); font-size:13px;">
-              <input type="checkbox" id="darkBoard" />
-              Black background
+            <label>Grid spread (%)
+              <input type="number" id="gridSpread" min="25" max="200" step="5" value="100">
             </label>
-            <label class="inline" style="color:var(--muted); font-size:13px;">
-              <input type="checkbox" id="randomSizes" />
-              Randomize size
-            </label>
-            <label class="inline" id="hideTargetsLabel" style="color:var(--muted); font-size:13px;">
-              <input type="checkbox" id="hideTargets" />
-              Hide until start beep
+            <button type="button" class="toggle-btn soft" id="useGridPhysicalSpacingBtn" aria-pressed="false">Space by target distance</button>
+            <input type="checkbox" id="useGridPhysicalSpacing" hidden>
+            <label id="gridSpacingFtLabel">Center spacing (ft)
+              <input type="number" id="gridSpacingFt" min="0.1" max="50" step="0.1" value="2">
             </label>
           </div>
           <div class="size-opts" id="fixedSizeOptions">
             <label>Target size (px)
-              <input type="number" id="targetSize" min="10" max="320" step="1" value="80" />
+              <input type="number" id="targetSize" min="10" max="320" step="1" value="80">
             </label>
           </div>
-          <div class="size-opts" id="randomSizeOptions" hidden>
+          <div class="size-opts" id="randomSizeOptions" hidden="">
             <label>Min size (px)
-              <input type="number" id="targetSizeMin" min="10" max="320" step="1" value="50" />
+              <input type="number" id="targetSizeMin" min="10" max="320" step="1" value="50">
             </label>
             <label>Max size (px)
-              <input type="number" id="targetSizeMax" min="10" max="360" step="1" value="120" />
+              <input type="number" id="targetSizeMax" min="10" max="360" step="1" value="120">
             </label>
           </div>
-          <p class="note">Targets repopulate when settings change. Use the layout toggle for a grid and optionally hide them until the run starts.</p>
         </section>
 
-        <section class="panel" id="continuousPanel" hidden>
+        <section class="panel" id="continuousPanel" hidden="">
           <h2>Continuous flow</h2>
           <div class="grid two">
             <label>Spawn source
               <select id="flowEdge">
-                <option value="left">Left to right</option>
+                <option value="left" selected="selected">Left to right</option>
                 <option value="right">Right to left</option>
                 <option value="top">Top to bottom</option>
                 <option value="bottom">Bottom to top</option>
@@ -273,21 +429,48 @@
             </label>
             <label>Start positions
               <select id="flowPlacement">
-                <option value="random">Random along edge</option>
+                <option value="random" selected="selected">Random along edge</option>
                 <option value="ordered">Ordered sequence</option>
               </select>
             </label>
-            <label class="checkbox-row">Alternate opposite edge
-              <input type="checkbox" id="flowAlternate" />
-            </label>
+            <button type="button" class="toggle-btn soft" id="flowAlternateBtn" aria-pressed="false">Alternate opposite edge</button>
+            <input type="checkbox" id="flowAlternate" hidden>
             <label>Flow speed (px/s)
-              <input type="number" id="flowSpeed" min="10" max="3000" step="10" value="280" />
+              <input type="number" id="flowSpeed" min="10" max="3000" step="10" value="280">
             </label>
             <label>Creation rate (targets/s)
-              <input type="number" id="flowRate" min="0.1" max="20" step="0.1" value="1.5" />
+              <input type="number" id="flowRate" min="0.1" max="20" step="0.1" value="1.5">
             </label>
           </div>
-          <p class="note">Continuous mode spawns targets from one edge or around the full border and moves them across the board until you press Stop. Enable alternating to swap between the selected edge and its opposite on each spawn.</p>
+          <p class="note">Continuous mode spawns targets from one edge 
+or around the full border and moves them across the board until you 
+press Stop. Enable alternating to swap between the selected edge and its
+ opposite on each spawn.</p>
+        </section>
+
+        <section class="panel" id="swingerPanel" hidden="">
+          <h2>Swinger</h2>
+          <div class="grid two">
+            <label>Swing rate (deg/s)
+              <input type="number" id="swingRate" min="1" max="720" step="1" value="180">
+            </label>
+            <label>Target height (px)
+              <input type="number" id="swingTargetHeight" min="10" max="2000" step="1" value="300">
+            </label>
+            <label>Axis height (px)
+              <input type="number" id="swingAxisHeight" min="0" max="2000" step="1" value="80">
+            </label>
+          </div>
+          <div class="size-opts" id="swingPhysicalOptions">
+            <button type="button" class="toggle-btn soft" id="useSwingPhysicalDimensionsBtn" aria-pressed="false">Swing dimensions by target distance</button>
+            <input type="checkbox" id="useSwingPhysicalDimensions" hidden>
+            <label id="swingTargetHeightFtLabel">Target height (ft perceived)
+              <input type="number" id="swingTargetHeightFt" min="0.1" max="50" step="0.1" value="2">
+            </label>
+            <label id="swingAxisHeightFtLabel">Axis height (ft perceived)
+              <input type="number" id="swingAxisHeightFt" min="0" max="50" step="0.1" value="0.5">
+            </label>
+          </div>
         </section>
       </div>
     </aside>
@@ -295,32 +478,111 @@
     <section class="board-area" id="boardArea">
       <div class="corner-controls">
         <button id="startBtn" class="primary">Start</button>
-        <button id="stopBtn" class="danger" disabled>Stop</button>
-        <button id="toggleMenu" class="ghost" aria-expanded="false">Show settings</button>
+        <button id="stopBtn" class="danger" disabled="disabled">Stop</button>
+        <button id="toggleMenu" class="ghost" aria-expanded="true">Hide settings</button>
       </div>
-      <div id="targetBoard" class="board"></div>
+      <div id="targetBoard" class="board"><div class="target circle" style="width: 80px; height: 80px; left: 1133.29px; top: 200.44px; background-color: rgb(214, 40, 40); color: rgb(255, 255, 255); font-size: 25.6px;"><span>1</span></div><div class="target circle" style="width: 80px; height: 80px; left: 1366.77px; top: 751.35px; background-color: rgb(214, 40, 40); color: rgb(255, 255, 255); font-size: 25.6px;"><span>2</span></div><div class="target circle" style="width: 80px; height: 80px; left: 1122.17px; top: 103.71px; background-color: rgb(214, 40, 40); color: rgb(255, 255, 255); font-size: 25.6px;"><span>3</span></div><div class="target circle" style="width: 80px; height: 80px; left: 1205.13px; top: 665.25px; background-color: rgb(214, 40, 40); color: rgb(255, 255, 255); font-size: 25.6px;"><span>4</span></div><div class="target circle" style="width: 80px; height: 80px; left: 573.09px; top: 793.8px; background-color: rgb(214, 40, 40); color: rgb(255, 255, 255); font-size: 25.6px;"><span>5</span></div><div class="target circle" style="width: 80px; height: 80px; left: 105.27px; top: 622.79px; background-color: rgb(214, 40, 40); color: rgb(255, 255, 255); font-size: 25.6px;"><span>6</span></div><div class="target circle" style="width: 80px; height: 80px; left: 257.24px; top: 241.78px; background-color: rgb(214, 40, 40); color: rgb(255, 255, 255); font-size: 25.6px;"><span>7</span></div><div class="target circle" style="width: 80px; height: 80px; left: 207.89px; top: 315.48px; background-color: rgb(214, 40, 40); color: rgb(255, 255, 255); font-size: 25.6px;"><span>8</span></div></div>
     </section>
   </main>
+
+  <div id="helpOverlay" class="help-overlay" hidden>
+    <section class="help-dialog" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+      <div class="help-header">
+        <div>
+          <h2 id="helpTitle">Target Trainer Help</h2>
+          <p>Pick a mode (or preset), then tune settings.</p>
+        </div>
+        <button id="helpClose" class="ghost" type="button">Close</button>
+      </div>
+
+      <div class="shortcut-strip">
+        <div class="shortcut-card"><strong>Space bar</strong><span>Starts and stops the active drill: timed board, continuous flow, or swinger.</span></div>
+        <div class="shortcut-card"><strong>Esc</strong><span>Hides or shows the settings panel from the main screen.</span></div>
+      </div>
+
+      <div class="flow-diagram">
+        <article class="flow-column">
+          <h3>Timed Board</h3>
+          <div class="flow-node"><strong>Timer mode</strong><span>Single par, reload-separated par, or shot-defined par controls the beep sequence.</span></div>
+          <div class="flow-node"><strong>Target board</strong><ul><li>Number of targets</li><li>Target shape</li><li>Random or grid layout</li><li>Optional numbered targets</li></ul></div>
+          <div class="flow-node"><strong>Presentation</strong><ul><li>Random start delay arms the run</li><li>Hide until start beep can conceal targets</li><li>Start/stop or shot beeps drive the drill</li></ul></div>
+        </article>
+
+        <article class="flow-column">
+          <h3>Continuous Flow</h3>
+          <div class="flow-node"><strong>Motion source</strong><span>Choose an edge, opposite-edge alternation, or border spawning.</span></div>
+          <div class="flow-node"><strong>Target stream</strong><ul><li>Flow speed sets travel rate</li><li>Creation rate sets target density</li><li>Random size and bright colors affect each spawned target</li></ul></div>
+          <div class="flow-node"><strong>Run behavior</strong><span>Targets keep spawning and crossing the board until Stop or Space is pressed.</span></div>
+        </article>
+
+        <article class="flow-column">
+          <h3>Swinger</h3>
+          <div class="flow-node"><strong>Swing shape</strong><span>The selected target shape becomes one moving target.</span></div>
+          <div class="flow-node"><strong>Arc controls</strong><ul><li>Swing rate sets speed</li><li>Target height sets swing radius</li><li>Axis height sets pivot position</li></ul></div>
+          <div class="flow-node"><strong>Run behavior</strong><span>Start or Space begins motion. Stop or Space stops motion and returns control to the settings panel.</span></div>
+        </article>
+      </div>
+
+      <div class="flow-note flow-node">
+        <strong>Screen calibration</strong>
+        <span>Use Calibrate Screen with a credit card to save this display's px/in. Once calibrated, known-size targets can be sized by screen distance and simulated target distance.</span>
+      </div>
+    </section>
+  </div>
+
+  <div id="calibrationOverlay" class="help-overlay" hidden>
+    <section class="help-dialog" role="dialog" aria-modal="true" aria-labelledby="calibrationTitle">
+      <div class="help-header">
+        <div>
+          <h2 id="calibrationTitle">Screen Calibration</h2>
+          <p>Overlay a credit card on the rectangle and press Confirm when the target matches the credit card size.</p>
+        </div>
+        <button id="calibrationClose" class="ghost" type="button">Close</button>
+      </div>
+      <div class="calibration-stage">
+        <div id="calibrationCard" class="calibration-card" aria-hidden="true"></div>
+      </div>
+      <div class="calibration-controls">
+        <label>Rectangle Height (px) (60 - 800 px)
+          <input type="number" id="calibrationHeight" min="60" max="800" step="1" value="315">
+        </label>
+        <div class="actions">
+          <button id="calibrationConfirm" class="primary" type="button">Confirm</button>
+        </div>
+        <div id="calibrationStatus" class="calibration-status"></div>
+      </div>
+    </section>
+  </div>
 
   <script>
     (function(){
       'use strict';
       var $ = function(id){ return document.getElementById(id); };
       var els = {
-        sessionMode: $('sessionMode'),
-        delayMin: $('delayMin'), delayMax: $('delayMax'), workDuration: $('workDuration'),
+        sessionMode: $('sessionMode'), timerMode: $('timerMode'),
+        delayMin: $('delayMin'), delayMax: $('delayMax'), workDuration: $('workDuration'), repeats: $('repeats'), reloadTime: $('reloadTime'),
+        shotCount: $('shotCount'), shotSplit: $('shotSplit'), firstShotTime: $('firstShotTime'), shotReloads: $('shotReloads'),
         startFreq: $('startFreq'), startLen: $('startLen'), stopFreq: $('stopFreq'), stopLen: $('stopLen'),
         startBtn: $('startBtn'), stopBtn: $('stopBtn'), testStart: $('testStart'), testStop: $('testStop'),
         status: $('status'), countStart: $('countStart'), countStop: $('countStop'), selectedDelay: $('selectedDelay'),
         targetCount: $('targetCount'), targetShape: $('targetShape'), targetColor: $('targetColor'),
         targetNumbered: $('targetNumbered'), randomTargetColors: $('randomTargetColors'), darkBoard: $('darkBoard'), randomSizes: $('randomSizes'), targetSize: $('targetSize'),
-        targetSizeMin: $('targetSizeMin'), targetSizeMax: $('targetSizeMax'), targetBoard: $('targetBoard'),
-        targetLayout: $('targetLayout'), hideTargets: $('hideTargets'),
+        targetSizeMin: $('targetSizeMin'), targetSizeMax: $('targetSizeMax'), useDistanceScale: $('useDistanceScale'), screenDistanceFt: $('screenDistanceFt'), targetDistanceYd: $('targetDistanceYd'),
+        targetBoard: $('targetBoard'),
+        targetLayout: $('targetLayout'), gridRows: $('gridRows'), gridCols: $('gridCols'), gridRowsLabel: $('gridRowsLabel'), gridColsLabel: $('gridColsLabel'), gridSpread: $('gridSpread'), useGridPhysicalSpacing: $('useGridPhysicalSpacing'), gridSpacingFt: $('gridSpacingFt'), hideTargets: $('hideTargets'),
         toggleMenu: $('toggleMenu'), configPane: $('configPane'),
-        timerPanel: $('timerPanel'), continuousPanel: $('continuousPanel'),
-        targetCountLabel: $('targetCountLabel'), targetLayoutLabel: $('targetLayoutLabel'), hideTargetsLabel: $('hideTargetsLabel'),
-        flowEdge: $('flowEdge'), flowPlacement: $('flowPlacement'), flowAlternate: $('flowAlternate'), flowSpeed: $('flowSpeed'), flowRate: $('flowRate'),
-        presetSelect: $('presetSelect'), savePreset: $('savePreset'), deletePreset: $('deletePreset')
+        timerPanel: $('timerPanel'), continuousPanel: $('continuousPanel'), swingerPanel: $('swingerPanel'),
+        workDurationLabel: $('workDurationLabel'), repeatsLabel: $('repeatsLabel'), reloadTimeLabel: $('reloadTimeLabel'),
+        shotCountLabel: $('shotCountLabel'), shotSplitLabel: $('shotSplitLabel'), firstShotTimeLabel: $('firstShotTimeLabel'), shotReloadsLabel: $('shotReloadsLabel'),
+        targetCountLabel: $('targetCountLabel'), targetColorLabel: $('targetColorLabel'), targetLayoutLabel: $('targetLayoutLabel'),
+        targetNumberedBtn: $('targetNumberedBtn'), randomTargetColorsBtn: $('randomTargetColorsBtn'), darkBoardBtn: $('darkBoardBtn'), randomSizesBtn: $('randomSizesBtn'), hideTargetsBtn: $('hideTargetsBtn'),
+        distanceScaleOptions: $('distanceScaleOptions'), useDistanceScaleBtn: $('useDistanceScaleBtn'), screenDistanceLabel: $('screenDistanceLabel'), targetDistanceLabel: $('targetDistanceLabel'), distanceScaleSummary: $('distanceScaleSummary'), useGridPhysicalSpacingBtn: $('useGridPhysicalSpacingBtn'), gridSpacingFtLabel: $('gridSpacingFtLabel'),
+        flowEdge: $('flowEdge'), flowPlacement: $('flowPlacement'), flowAlternate: $('flowAlternate'), flowAlternateBtn: $('flowAlternateBtn'), flowSpeed: $('flowSpeed'), flowRate: $('flowRate'),
+        swingRate: $('swingRate'), swingTargetHeight: $('swingTargetHeight'), swingAxisHeight: $('swingAxisHeight'), useSwingPhysicalDimensions: $('useSwingPhysicalDimensions'), swingTargetHeightFt: $('swingTargetHeightFt'), swingAxisHeightFt: $('swingAxisHeightFt'), useSwingPhysicalDimensionsBtn: $('useSwingPhysicalDimensionsBtn'), swingTargetHeightFtLabel: $('swingTargetHeightFtLabel'), swingAxisHeightFtLabel: $('swingAxisHeightFtLabel'),
+        presetSelect: $('presetSelect'), savePreset: $('savePreset'), deletePreset: $('deletePreset'), exportPresets: $('exportPresets'), importPresets: $('importPresets'), importPresetFile: $('importPresetFile'),
+        helpBtn: $('helpBtn'), helpOverlay: $('helpOverlay'), helpClose: $('helpClose'),
+        calibrateBtn: $('calibrateBtn'), calibrationOverlay: $('calibrationOverlay'), calibrationClose: $('calibrationClose'), calibrationCard: $('calibrationCard'),
+        calibrationHeight: $('calibrationHeight'), calibrationConfirm: $('calibrationConfirm'), calibrationStatus: $('calibrationStatus'), calibrationIndicator: $('calibrationIndicator')
       };
 
       var audioCtx = null;
@@ -332,11 +594,193 @@
       var awaitingReveal = false;
       var continuousState = null;
       var continuousRafId = 0;
+      var swingerState = null;
+      var swingerRafId = 0;
+      var repeatState = null;
       var root = document.body;
       var BRIGHT_TARGET_COLORS = ['#d62828', '#f77f00', '#fcbf49', '#2a9d8f', '#00b4d8', '#3a86ff', '#8338ec', '#ff006e'];
+      var calibration = {};
+      var CALIBRATION_MIN_PX = 60;
+      var CALIBRATION_MAX_PX = 800;
 
       var STORAGE_KEY = 'targetTrainer_settings_v1';
       var PRESET_KEY = 'targetTrainer_presets_v1';
+      var PRESET_DELETED_KEY = 'targetTrainer_deletedDefaultPresets_v1';
+      var CALIBRATION_KEY = 'targetTrainer_screenCalibration_v1';
+      var SETTINGS_DEFAULTS = {
+        sessionMode: 'board',
+        timerMode: 'single',
+        delayMin: 1,
+        delayMax: 3,
+        workDuration: 5,
+        repeats: 0,
+        reloadTime: 0,
+        shotCount: 6,
+        shotSplit: 0.25,
+        firstShotTime: 0.75,
+        shotReloads: 0,
+        startFreq: 950,
+        startLen: 0.2,
+        stopFreq: 1200,
+        stopLen: 0.25,
+        targetCount: 8,
+        targetShape: 'circle',
+        targetColor: '#d62828',
+        targetLayout: 'random',
+        gridRows: 0,
+        gridCols: 0,
+        gridSpread: 100,
+        useGridPhysicalSpacing: false,
+        gridSpacingFt: 2,
+        targetNumbered: true,
+        randomTargetColors: false,
+        darkBoard: false,
+        randomSizes: false,
+        hideTargets: false,
+        targetSize: 80,
+        useDistanceScale: false,
+        screenDistanceFt: 2,
+        targetDistanceYd: 10,
+        targetSizeMin: 50,
+        targetSizeMax: 120,
+        flowEdge: 'left',
+        flowPlacement: 'random',
+        flowAlternate: false,
+        flowSpeed: 280,
+        flowRate: 1.5,
+        swingRate: 180,
+        swingTargetHeight: 300,
+        swingAxisHeight: 80,
+        useSwingPhysicalDimensions: false,
+        swingTargetHeightFt: 2,
+        swingAxisHeightFt: 0.5
+      };
+      var SETTINGS_FIELDS = Object.keys(SETTINGS_DEFAULTS);
+      var DEFAULT_PRESETS = {
+        'Classic Bowling Pins': {
+          sessionMode: 'board',
+          timerMode: 'single',
+          delayMin: 3,
+          delayMax: 4,
+          workDuration: 6,
+          repeats: 0,
+          reloadTime: 0,
+          startFreq: 950,
+          startLen: 0.2,
+          stopFreq: 1200,
+          stopLen: 0.25,
+          targetCount: 6,
+          targetShape: 'bowling-pin',
+          targetColor: '#d62828',
+          targetLayout: 'grid',
+          gridRows: 2,
+          gridCols: 3,
+          gridSpread: 100,
+          useGridPhysicalSpacing: false,
+          gridSpacingFt: 2,
+          targetNumbered: false,
+          randomTargetColors: false,
+          darkBoard: false,
+          randomSizes: false,
+          hideTargets: false,
+          targetSize: 300,
+          targetSizeMin: 50,
+          targetSizeMax: 120,
+          flowEdge: 'left',
+          flowPlacement: 'random',
+          flowAlternate: false,
+          flowSpeed: 280,
+          flowRate: 1.5,
+          swingRate: 180,
+          swingTargetHeight: 300,
+          swingAxisHeight: 80,
+          useSwingPhysicalDimensions: false,
+          swingTargetHeightFt: 2,
+          swingAxisHeightFt: 0.5
+        },
+        'USPSA Swinger': {
+          sessionMode: 'swinger',
+          timerMode: 'single',
+          delayMin: 1,
+          delayMax: 3,
+          workDuration: 5,
+          repeats: 0,
+          reloadTime: 0,
+          startFreq: 950,
+          startLen: 0.2,
+          stopFreq: 1200,
+          stopLen: 0.25,
+          targetCount: 8,
+          targetShape: 'uspsa',
+          targetColor: '#d62828',
+          targetLayout: 'random',
+          gridRows: 0,
+          gridCols: 0,
+          gridSpread: 100,
+          useGridPhysicalSpacing: false,
+          gridSpacingFt: 2,
+          targetNumbered: false,
+          randomTargetColors: false,
+          darkBoard: false,
+          randomSizes: false,
+          hideTargets: false,
+          targetSize: 300,
+          targetSizeMin: 50,
+          targetSizeMax: 120,
+          flowEdge: 'left',
+          flowPlacement: 'random',
+          flowAlternate: false,
+          flowSpeed: 280,
+          flowRate: 1.5,
+          swingRate: 180,
+          swingTargetHeight: 300,
+          swingAxisHeight: 150,
+          useSwingPhysicalDimensions: false,
+          swingTargetHeightFt: 2,
+          swingAxisHeightFt: 0.5
+        },
+        'Raining Targets': {
+          sessionMode: 'continuous',
+          timerMode: 'single',
+          delayMin: 1,
+          delayMax: 3,
+          workDuration: 5,
+          repeats: 0,
+          reloadTime: 0,
+          startFreq: 950,
+          startLen: 0.2,
+          stopFreq: 1200,
+          stopLen: 0.25,
+          targetCount: 8,
+          targetShape: 'circle',
+          targetColor: '#d62828',
+          targetLayout: 'random',
+          gridRows: 0,
+          gridCols: 0,
+          gridSpread: 100,
+          useGridPhysicalSpacing: false,
+          gridSpacingFt: 2,
+          targetNumbered: false,
+          randomTargetColors: true,
+          darkBoard: true,
+          randomSizes: true,
+          hideTargets: false,
+          targetSize: 80,
+          targetSizeMin: 50,
+          targetSizeMax: 120,
+          flowEdge: 'top',
+          flowPlacement: 'random',
+          flowAlternate: false,
+          flowSpeed: 300,
+          flowRate: 1.5,
+          swingRate: 180,
+          swingTargetHeight: 300,
+          swingAxisHeight: 80,
+          useSwingPhysicalDimensions: false,
+          swingTargetHeightFt: 2,
+          swingAxisHeightFt: 0.5
+        }
+      };
 
       function readStore(key){
         try{
@@ -353,8 +797,49 @@
 
       function loadSettings(){ return readStore(STORAGE_KEY) || {}; }
       function saveSettings(data){ writeStore(STORAGE_KEY, data || {}); }
-      function loadPresetStore(){ return readStore(PRESET_KEY) || {}; }
+      function loadDeletedPresetStore(){ return readStore(PRESET_DELETED_KEY) || {}; }
+      function saveDeletedPresetStore(data){ writeStore(PRESET_DELETED_KEY, data || {}); }
+      function loadPresetStore(){ return withDefaultPresets(readStore(PRESET_KEY) || {}); }
       function savePresetStore(data){ writeStore(PRESET_KEY, data || {}); }
+      function loadCalibration(){ return readStore(CALIBRATION_KEY) || {}; }
+      function saveCalibration(data){ writeStore(CALIBRATION_KEY, data || {}); }
+
+      function withDefaultPresets(presets){
+        var merged = {};
+        var deletedDefaults = loadDeletedPresetStore();
+        Object.keys(DEFAULT_PRESETS).forEach(function(name){
+          if(!deletedDefaults[name]){ merged[name] = normalizeSettings(DEFAULT_PRESETS[name]); }
+        });
+        Object.keys(presets || {}).forEach(function(name){
+          merged[name] = presets[name];
+        });
+        return merged;
+      }
+
+      function markDefaultPresetDeleted(name){
+        if(!DEFAULT_PRESETS[name]) return;
+        var deletedDefaults = loadDeletedPresetStore();
+        deletedDefaults[name] = true;
+        saveDeletedPresetStore(deletedDefaults);
+      }
+
+      function unmarkDefaultPresetDeleted(name){
+        if(!DEFAULT_PRESETS[name]) return;
+        var deletedDefaults = loadDeletedPresetStore();
+        if(deletedDefaults[name]){
+          delete deletedDefaults[name];
+          saveDeletedPresetStore(deletedDefaults);
+        }
+      }
+
+      function normalizeSettings(state){
+        var normalized = {};
+        state = (state && typeof state === 'object') ? state : {};
+        SETTINGS_FIELDS.forEach(function(key){
+          normalized[key] = state[key] !== undefined ? state[key] : SETTINGS_DEFAULTS[key];
+        });
+        return normalized;
+      }
 
       async function ensureAudio(){
         if(!audioCtx){ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -425,6 +910,17 @@
         return !!(els.sessionMode && els.sessionMode.value === 'continuous');
       }
 
+      function isSwingerMode(){
+        return !!(els.sessionMode && els.sessionMode.value === 'swinger');
+      }
+
+      function getTimerMode(){
+        return els.timerMode && els.timerMode.value ? els.timerMode.value : 'single';
+      }
+
+      function isShotDefinedPar(){ return getTimerMode() === 'shot'; }
+      function isReloadSeparatedPar(){ return getTimerMode() === 'reload'; }
+
       function updateMenuToggle(){
         if(!els.toggleMenu) return;
         var collapsed = root.classList.contains('menu-collapsed');
@@ -436,11 +932,36 @@
         root.classList.toggle('board-dark', !!(els.darkBoard && els.darkBoard.checked));
       }
 
+      function syncToggleButton(button, input, onText, offText){
+        if(!button || !input) return;
+        var active = !!input.checked;
+        button.classList.toggle('active', active);
+        button.classList.toggle('inactive', !active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        if(onText || offText){ button.title = active ? (onText || '') : (offText || ''); }
+      }
+
+      function syncTargetBoardToggleButtons(){
+        syncToggleButton(els.targetNumberedBtn, els.targetNumbered, 'Number targets', 'Number targets');
+        syncToggleButton(els.randomTargetColorsBtn, els.randomTargetColors, 'Cycle bright colors', 'Cycle bright colors');
+        syncToggleButton(els.darkBoardBtn, els.darkBoard, 'Black background', 'Black background');
+        syncToggleButton(els.randomSizesBtn, els.randomSizes, 'Randomize size', 'Randomize size');
+        syncToggleButton(els.hideTargetsBtn, els.hideTargets, 'Hide until start beep', 'Hide until start beep');
+        syncToggleButton(els.useDistanceScaleBtn, els.useDistanceScale, 'Size by distance', 'Size by distance');
+      }
+
+      function syncAllToggleButtons(){
+        syncTargetBoardToggleButtons();
+        syncToggleButton(els.useGridPhysicalSpacingBtn, els.useGridPhysicalSpacing, 'Space by target distance', 'Space by target distance');
+        syncToggleButton(els.flowAlternateBtn, els.flowAlternate, 'Alternate opposite edge', 'Alternate opposite edge');
+        syncToggleButton(els.useSwingPhysicalDimensionsBtn, els.useSwingPhysicalDimensions, 'Swing dimensions by target distance', 'Swing dimensions by target distance');
+      }
+
       function setMenuCollapsed(collapsed){
         if(collapsed){ root.classList.add('menu-collapsed'); }
         else { root.classList.remove('menu-collapsed'); }
         updateMenuToggle();
-        window.requestAnimationFrame(function(){ renderTargets(); });
+        window.requestAnimationFrame(function(){ if(!continuousState && !swingerState){ renderTargets(); } });
       }
 
       function formatSeconds(value){ return value > 0 ? value.toFixed(2) + ' s' : '0.00 s'; }
@@ -450,20 +971,138 @@
           startContinuousRun();
           return;
         }
+        if(isSwingerMode()){
+          startSwingerRun();
+          return;
+        }
         await ensureAudio();
         stopRun(true);
+        if(isShotDefinedPar()){
+          startShotDefinedPresentation();
+          return;
+        }
+        var repeats = isReloadSeparatedPar() ? Math.max(0, Math.floor(parseFloat(els.repeats.value) || 0)) : 0;
+        var reloadTime = Math.max(0, parseFloat(els.reloadTime.value) || 0);
+        repeatState = {
+          remaining: repeats,
+          reloadTime: reloadTime,
+          presentationIndex: 0
+        };
+        startTimedPresentation();
+      }
+
+      function readRandomStartDelay(){
         var minDelay = Math.max(0, parseFloat(els.delayMin.value));
         var maxDelay = Math.max(0, parseFloat(els.delayMax.value));
         if(isNaN(minDelay)) minDelay = 0;
         if(isNaN(maxDelay)) maxDelay = minDelay;
         if(maxDelay < minDelay){ var tmp = minDelay; minDelay = maxDelay; maxDelay = tmp; }
+        return minDelay + Math.random() * (maxDelay - minDelay);
+      }
+
+      function buildShotDefinedTimeline(){
+        var events = [];
+        var drawDelay = readRandomStartDelay();
+        var firstShotTime = Math.max(0, parseFloat(els.firstShotTime.value) || 0);
+        var split = Math.max(0, parseFloat(els.shotSplit.value) || 0);
+        var reloadGap = Math.max(0, parseFloat(els.reloadTime.value) || 0);
+        var shotsPerString = Math.max(1, Math.floor(parseFloat(els.shotCount.value) || 1));
+        var strings = Math.max(1, Math.floor(parseFloat(els.shotReloads.value) || 0) + 1);
+        var t = drawDelay;
+        events.push({ t: t, type: 'draw' });
+        t += firstShotTime;
+        var shotIndex = 1;
+        for(var seg=0; seg<strings; seg++){
+          for(var i=0; i<shotsPerString; i++){
+            events.push({ t: t, type: 'shot', n: shotIndex });
+            shotIndex += 1;
+            var lastShotInString = i === shotsPerString - 1;
+            var lastString = seg === strings - 1;
+            if(!(lastString && lastShotInString)){
+              if(lastShotInString){
+                t += reloadGap;
+                events.push({ t: t, type: 'reload' });
+              } else {
+                t += split;
+              }
+            }
+          }
+        }
+        return { events: events, total: t, delay: drawDelay };
+      }
+
+      function startShotDefinedPresentation(){
+        clearTimers();
+        cleanupNodes();
+        renderTargets();
+
+        var timeline = buildShotDefinedTimeline();
+        var startFrequency = Math.max(50, parseFloat(els.startFreq.value) || 0);
+        var startLength = Math.max(0.05, parseFloat(els.startLen.value) || 0.1);
+        var cueFrequency = Math.max(50, parseFloat(els.stopFreq.value) || 0);
+        var cueLength = Math.max(0.05, parseFloat(els.stopLen.value) || 0.1);
+        var now = performance.now();
+        plan = {
+          mode: 'shot',
+          startAt: now + timeline.delay * 1000,
+          stopAt: now + timeline.total * 1000,
+          delay: timeline.delay,
+          duration: Math.max(0, timeline.total - timeline.delay),
+          startFreq: startFrequency,
+          startLen: startLength,
+          stopFreq: cueFrequency,
+          stopLen: cueLength
+        };
+        if(els.hideTargets && els.hideTargets.checked){ awaitingReveal = true; setBoardHidden(true); }
+        else { awaitingReveal = false; setBoardHidden(false); }
+        els.startBtn.disabled = true;
+        els.stopBtn.disabled = false;
+        els.selectedDelay.textContent = timeline.delay.toFixed(2) + ' s';
+        setStatus('Waiting for draw beep...');
+
+        timeline.events.forEach(function(ev){
+          timers.push(setTimeout(function(){
+            ensureAudio().then(function(){
+              if(!plan) return;
+              if(ev.type === 'draw'){
+                beepNow(plan.startFreq, plan.startLen);
+                if(awaitingReveal){ awaitingReveal = false; setBoardHidden(false); }
+                setStatus('Run active');
+              } else if(ev.type === 'shot'){
+                beepNow(plan.stopFreq, plan.stopLen);
+                setStatus('Shot ' + ev.n);
+              } else if(ev.type === 'reload'){
+                beepNow(plan.stopFreq, plan.stopLen);
+                setStatus('Reload');
+              }
+            }).catch(function(){});
+          }, Math.max(0, ev.t) * 1000));
+        });
+
+        timers.push(setTimeout(function(){
+          if(!plan) return;
+          if(els.hideTargets && els.hideTargets.checked && els.targetBoard){ els.targetBoard.innerHTML = ''; }
+          awaitingReveal = false;
+          setBoardHidden(false);
+          setStatus('Completed');
+          timers.push(setTimeout(function(){ finalizeRun(); }, Math.max(0, cueLength) * 1000 + 120));
+        }, Math.max(0, timeline.total) * 1000));
+      }
+
+      function startTimedPresentation(){
+        clearTimers();
+        cleanupNodes();
+        renderTargets();
+
         var duration = Math.max(0, parseFloat(els.workDuration.value));
         if(isNaN(duration)){ duration = 0; }
         var startFrequency = Math.max(50, parseFloat(els.startFreq.value) || 0);
         var startLength = Math.max(0.05, parseFloat(els.startLen.value) || 0.1);
         var stopFrequency = Math.max(50, parseFloat(els.stopFreq.value) || 0);
         var stopLength = Math.max(0.05, parseFloat(els.stopLen.value) || 0.1);
-        var delay = minDelay + Math.random() * (maxDelay - minDelay);
+        var isRepeatPresentation = !!(repeatState && repeatState.presentationIndex > 0);
+        var delay = isRepeatPresentation ? 0 : readRandomStartDelay();
+        if(repeatState){ repeatState.presentationIndex += 1; }
         var now = performance.now();
         plan = {
           startAt: now + delay * 1000,
@@ -477,7 +1116,6 @@
         };
         if(els.hideTargets && els.hideTargets.checked){ awaitingReveal = true; setBoardHidden(true); }
         else { awaitingReveal = false; setBoardHidden(false); }
-        setMenuCollapsed(true);
         els.startBtn.disabled = true;
         els.stopBtn.disabled = false;
         els.selectedDelay.textContent = delay.toFixed(2) + ' s';
@@ -485,6 +1123,7 @@
 
         timers.push(setTimeout(function(){
           ensureAudio().then(function(){
+            if(!plan) return;
             beepNow(plan.startFreq, plan.startLen);
             if(awaitingReveal){ awaitingReveal = false; setBoardHidden(false); }
             setStatus('Run active');
@@ -493,7 +1132,11 @@
 
         timers.push(setTimeout(function(){
           ensureAudio().then(function(){
+            if(!plan) return;
             beepNow(plan.stopFreq, plan.stopLen);
+            if(els.hideTargets && els.hideTargets.checked && els.targetBoard){ els.targetBoard.innerHTML = ''; }
+            awaitingReveal = false;
+            setBoardHidden(false);
             setStatus('Completed');
             var finalizeDelay = Math.max(0, plan.stopLen || 0) * 1000 + 120;
             timers.push(setTimeout(function(){ finalizeRun(); }, finalizeDelay));
@@ -504,8 +1147,31 @@
       function finalizeRun(){
         clearTimers();
         cleanupNodes();
+
+        if(repeatState && repeatState.remaining > 0){
+          repeatState.remaining -= 1;
+          plan = null;
+          awaitingReveal = false;
+          setBoardHidden(false);
+          if(els.hideTargets && els.hideTargets.checked && els.targetBoard){ els.targetBoard.innerHTML = ''; }
+          els.countStart.textContent = '—';
+          els.countStop.textContent = '—';
+          els.selectedDelay.textContent = '—';
+          els.startBtn.disabled = true;
+          els.stopBtn.disabled = false;
+          setStatus('Reloading…');
+
+          timers.push(setTimeout(function(){
+            if(!repeatState) return;
+            startTimedPresentation();
+          }, Math.max(0, repeatState.reloadTime || 0) * 1000));
+          return;
+        }
+
+        repeatState = null;
         plan = null;
         stopContinuousRun(true);
+        stopSwingerRun(true);
         els.startBtn.disabled = false;
         els.stopBtn.disabled = true;
         els.countStart.textContent = '—';
@@ -514,11 +1180,19 @@
         setBoardHidden(false);
       }
 
+      function isRunActive(){
+        return !!(plan || repeatState || continuousState || swingerState);
+      }
+
       function stopRun(skipStatus){
         clearTimers();
         cleanupNodes();
+        repeatState = null;
+        var hadContinuous = !!continuousState;
+        var hadSwinger = !!swingerState;
         stopContinuousRun(true);
-        if(plan && !skipStatus){ setStatus('Stopped'); }
+        stopSwingerRun(true);
+        if((plan || hadContinuous || hadSwinger) && !skipStatus){ setStatus('Stopped'); }
         plan = null;
         els.startBtn.disabled = false;
         els.stopBtn.disabled = true;
@@ -573,9 +1247,41 @@
         return luminance > 0.55 ? '#111' : '#fff';
       }
 
+      function getTargetTrueHeightInches(shape){
+        if(shape === 'd1' || shape === 'uspsa'){ return 30; }
+        if(shape === 'ipsc-mini'){ return 37.5 / 2.54; }
+        if(shape === 'bowling-pin'){ return 15; }
+        return 0;
+      }
+
+      function hasCalibration(){
+        return !!(calibration && calibration.pxPerIn && calibration.pxPerIn > 0);
+      }
+
+      function canUseDistanceScale(){
+        return hasCalibration() && getTargetTrueHeightInches(getSelectedTargetShape()) > 0;
+      }
+
+      function getDistanceScaleSize(){
+        var shape = getSelectedTargetShape();
+        var trueHeightIn = getTargetTrueHeightInches(shape);
+        var screenIn = Math.max(0.1, parseFloat(els.screenDistanceFt.value) || 2) * 12;
+        var targetYd = Math.max(0.1, parseFloat(els.targetDistanceYd.value) || 10);
+        var targetIn = targetYd * 36;
+        if(!hasCalibration() || !trueHeightIn){ return 0; }
+        return Math.max(10, trueHeightIn * (screenIn / targetIn) * calibration.pxPerIn);
+      }
+
+      function getDistanceScalePercent(){
+        var screenIn = Math.max(0.1, parseFloat(els.screenDistanceFt.value) || 2) * 12;
+        var targetYd = Math.max(0.1, parseFloat(els.targetDistanceYd.value) || 10);
+        return (screenIn / (targetYd * 36)) * 100;
+      }
+
       function getTargetSizeConfig(){
-        var random = !!(els.randomSizes && els.randomSizes.checked);
-        var fixedSize = Math.max(10, parseFloat(els.targetSize.value) || 60);
+        var distanceScale = canUseDistanceScale() && !!(els.useDistanceScale && els.useDistanceScale.checked);
+        var fixedSize = distanceScale ? getDistanceScaleSize() : Math.max(10, parseFloat(els.targetSize.value) || 60);
+        var random = !distanceScale && !!(els.randomSizes && els.randomSizes.checked);
         var minSize = Math.max(10, parseFloat(els.targetSizeMin.value) || 40);
         var maxSize = Math.max(10, parseFloat(els.targetSizeMax.value) || 100);
         if(maxSize < minSize){ var swap = minSize; minSize = maxSize; maxSize = swap; }
@@ -593,17 +1299,45 @@
 
       function updateModeUI(){
         var continuous = isContinuousMode();
-        if(els.timerPanel){ els.timerPanel.hidden = continuous; }
+        var swinger = isSwingerMode();
+        var motionMode = continuous || swinger;
+        var shape = getSelectedTargetShape();
+        var plainColorShape = shape === 'circle' || shape === 'square';
+        if(els.timerPanel){ els.timerPanel.hidden = motionMode; }
         if(els.continuousPanel){ els.continuousPanel.hidden = !continuous; }
-        if(els.targetCountLabel){ els.targetCountLabel.hidden = continuous; }
-        if(els.targetLayoutLabel){ els.targetLayoutLabel.hidden = continuous; }
-        if(els.hideTargetsLabel){ els.hideTargetsLabel.hidden = continuous; }
-        if(continuous){
+        if(els.swingerPanel){ els.swingerPanel.hidden = !swinger; }
+        if(els.targetCountLabel){ els.targetCountLabel.hidden = motionMode; }
+        if(els.targetLayoutLabel){ els.targetLayoutLabel.hidden = motionMode; }
+        if(els.hideTargetsBtn){ els.hideTargetsBtn.hidden = motionMode; }
+        if(els.targetColorLabel){ els.targetColorLabel.hidden = !plainColorShape || !!(els.randomTargetColors && els.randomTargetColors.checked); }
+        if(els.randomTargetColorsBtn){ els.randomTargetColorsBtn.hidden = !plainColorShape; }
+        if(els.targetNumberedBtn){ els.targetNumberedBtn.hidden = swinger; }
+        if(els.randomSizesBtn){ els.randomSizesBtn.hidden = swinger; }
+        if(els.darkBoardBtn){ els.darkBoardBtn.hidden = false; }
+        updateTimerModeUI(motionMode);
+        toggleSizeInputs();
+        syncAllToggleButtons();
+        if(motionMode){
           els.selectedDelay.textContent = '—';
           setBoardHidden(false);
           awaitingReveal = false;
-          if(!continuousState){ setStatus('Idle'); }
+          if(!continuousState && !swingerState){ setStatus('Idle'); }
         }
+      }
+
+      function updateTimerModeUI(motionMode){
+        var mode = getTimerMode();
+        var single = mode === 'single';
+        var reload = mode === 'reload';
+        var shot = mode === 'shot';
+        var hideAll = !!motionMode;
+        if(els.workDurationLabel){ els.workDurationLabel.hidden = hideAll || shot; }
+        if(els.repeatsLabel){ els.repeatsLabel.hidden = hideAll || !reload; }
+        if(els.reloadTimeLabel){ els.reloadTimeLabel.hidden = hideAll || single; }
+        if(els.shotCountLabel){ els.shotCountLabel.hidden = hideAll || !shot; }
+        if(els.shotSplitLabel){ els.shotSplitLabel.hidden = hideAll || !shot; }
+        if(els.firstShotTimeLabel){ els.firstShotTimeLabel.hidden = hideAll || !shot; }
+        if(els.shotReloadsLabel){ els.shotReloadsLabel.hidden = hideAll || !shot; }
       }
 
       function renderTargets(){
@@ -615,9 +1349,13 @@
           if(continuousState){ continuousState.targets = []; }
           return;
         }
+        if(isSwingerMode()){
+          if(!swingerState){ renderSwingerTarget(90); }
+          return;
+        }
         var count = Math.max(0, Math.floor(parseFloat(els.targetCount.value) || 0));
         if(count === 0){ return; }
-        var shape = els.targetShape && els.targetShape.value === 'square' ? 'square' : 'circle';
+        var shape = getSelectedTargetShape();
         var numbered = !!(els.targetNumbered && els.targetNumbered.checked);
         var sizeConfig = getTargetSizeConfig();
         var random = sizeConfig.random;
@@ -625,6 +1363,7 @@
         var minSize = sizeConfig.minSize;
         var maxSize = sizeConfig.maxSize;
         var arrangement = els.targetLayout ? els.targetLayout.value : 'random';
+        syncGridLimits(count);
         var labels = [];
         for(var n=1;n<=count;n++){ labels.push(n); }
         var gridLabels = arrangement === 'grid' ? shuffle(labels.slice()) : labels;
@@ -645,33 +1384,34 @@
         for(var i=0;i<count;i++){
           var size = random ? randBetween(minSize, maxSize) : fixedSize;
           size = Math.max(10, size);
+          var dims = getTargetDimensions(shape, size);
           var best = null;
           var attempts = attemptBase;
           for(var attempt=0; attempt<attempts; attempt++){
-            var left = Math.random() * Math.max(0, boardW - size);
-            var top = Math.random() * Math.max(0, boardH - size);
-            left = Math.min(Math.max(0, left), Math.max(0, boardW - size));
-            top = Math.min(Math.max(0, top), Math.max(0, boardH - size));
-            var penalty = overlapPenalty(left, top, size, placements);
+            var left = Math.random() * Math.max(0, boardW - dims.width);
+            var top = Math.random() * Math.max(0, boardH - dims.height);
+            left = Math.min(Math.max(0, left), Math.max(0, boardW - dims.width));
+            top = Math.min(Math.max(0, top), Math.max(0, boardH - dims.height));
+            var penalty = overlapPenalty(left, top, dims, placements);
             if(!best || penalty < best.penalty){ best = { left:left, top:top, penalty:penalty }; }
             if(penalty === 0){ break; }
           }
           if(!best){ best = { left:0, top:0, penalty:0 }; }
-          placements.push({ left:best.left, top:best.top, size:size });
+          placements.push({ left:best.left, top:best.top, width:dims.width, height:dims.height });
           createTargetElement(board, labels[i], size, best.left, best.top, shape, resolveTargetColor(i), numbered);
         }
       }
 
-      function overlapPenalty(left, top, size, placements){
+      function overlapPenalty(left, top, dims, placements){
         var penalty = 0;
-        var r = size / 2;
-        var cx = left + r;
-        var cy = top + r;
+        var r = Math.max(dims.width, dims.height) / 2;
+        var cx = left + dims.width / 2;
+        var cy = top + dims.height / 2;
         for(var i=0;i<placements.length;i++){
           var other = placements[i];
-          var or = other.size / 2;
-          var ocx = other.left + or;
-          var ocy = other.top + or;
+          var or = Math.max(other.width, other.height) / 2;
+          var ocx = other.left + other.width / 2;
+          var ocy = other.top + other.height / 2;
           var dist = Math.hypot(cx - ocx, cy - ocy);
           var minDist = r + or;
           if(dist < minDist){ penalty += (minDist - dist); }
@@ -680,45 +1420,224 @@
       }
 
       function renderGridTargets(board, count, shape, numbered, random, fixedSize, minSize, maxSize, boardW, boardH, labels){
-        var aspect = boardW && boardH ? boardW / boardH : 1;
-        var cols = Math.max(1, Math.ceil(Math.sqrt(count * (aspect || 1))));
-        var rows = Math.max(1, Math.ceil(count / cols));
+        var distanceScale = canUseDistanceScale() && !!(els.useDistanceScale && els.useDistanceScale.checked);
+        var resolvedGrid = resolveGridDimensions(count);
+        var cols = resolvedGrid.cols;
+        var rows = resolvedGrid.rows;
         var cellW = boardW / cols;
         var cellH = boardH / rows;
+        var spread = getGridSpread();
+        var physicalSpacing = getGridPhysicalSpacingPx();
+        var boardCenterX = boardW / 2;
+        var boardCenterY = boardH / 2;
         var fitFactor = 0.82;
         for(var i=0;i<count;i++){
           var sizeCandidate = random ? randBetween(minSize, maxSize) : fixedSize;
-          var maxFit = Math.max(10, Math.min(cellW, cellH) * fitFactor);
-          var size = Math.max(10, Math.min(sizeCandidate, maxFit));
+          var maxFit = Math.max(10, targetHeightForCell(shape, cellW, cellH, fitFactor));
+          var size = distanceScale ? Math.max(10, sizeCandidate) : Math.max(10, Math.min(sizeCandidate, maxFit));
+          var dims = getTargetDimensions(shape, size);
           var row = Math.floor(i / cols);
           var col = i % cols;
           var centerX = col * cellW + cellW / 2;
           var centerY = row * cellH + cellH / 2;
-          var left = centerX - size / 2;
-          var top = centerY - size / 2;
-          left = Math.min(Math.max(0, left), Math.max(0, boardW - size));
-          top = Math.min(Math.max(0, top), Math.max(0, boardH - size));
+          if(physicalSpacing > 0){
+            centerX = boardCenterX + (col - (cols - 1) / 2) * physicalSpacing;
+            centerY = boardCenterY + (row - (rows - 1) / 2) * physicalSpacing;
+          } else {
+            centerX = boardCenterX + (centerX - boardCenterX) * spread;
+            centerY = boardCenterY + (centerY - boardCenterY) * spread;
+          }
+          var left = centerX - dims.width / 2;
+          var top = centerY - dims.height / 2;
+          left = Math.min(Math.max(0, left), Math.max(0, boardW - dims.width));
+          top = Math.min(Math.max(0, top), Math.max(0, boardH - dims.height));
           var label = labels && labels[i] != null ? labels[i] : (i + 1);
           createTargetElement(board, label, size, left, top, shape, resolveTargetColor(i), numbered);
         }
       }
 
+      function getSelectedTargetShape(){
+        var shape = els.targetShape && els.targetShape.value ? els.targetShape.value : 'circle';
+        return shape === 'square' || shape === 'd1' || shape === 'uspsa' || shape === 'ipsc-mini' || shape === 'bowling-pin' ? shape : 'circle';
+      }
+
+      function getTargetDimensions(shape, size){
+        var height = Math.max(10, size);
+        var width = shape === 'd1' || shape === 'uspsa' ? height * (18 / 30) : (shape === 'ipsc-mini' ? height * (30 / 37.5) : (shape === 'bowling-pin' ? height * (4.8 / 15) : height));
+        return { width: width, height: height };
+      }
+
+      function targetHeightForCell(shape, cellW, cellH, fitFactor){
+        var availableW = Math.max(10, cellW * fitFactor);
+        var availableH = Math.max(10, cellH * fitFactor);
+        if(shape === 'd1' || shape === 'uspsa'){ return Math.min(availableH, availableW * (30 / 18)); }
+        if(shape === 'ipsc-mini'){ return Math.min(availableH, availableW * (37.5 / 30)); }
+        if(shape === 'bowling-pin'){ return Math.min(availableH, availableW * (15 / 4.8)); }
+        return Math.min(availableW, availableH);
+      }
+
       function resolveTargetColor(index){
+        var shape = getSelectedTargetShape();
+        if(shape === 'd1' || shape === 'uspsa' || shape === 'ipsc-mini'){ return '#8a5a35'; }
+        if(shape === 'bowling-pin'){ return '#ffffff'; }
         if(els.randomTargetColors && els.randomTargetColors.checked){
           return BRIGHT_TARGET_COLORS[((index || 0) % BRIGHT_TARGET_COLORS.length + BRIGHT_TARGET_COLORS.length) % BRIGHT_TARGET_COLORS.length];
         }
         return els.targetColor && els.targetColor.value ? els.targetColor.value : '#d62828';
       }
 
+      // Target geometry notes: NRA D1, USPSA, and bowling pin dimensions are encoded from inch-based source dimensions; IPSC Mini vertices are encoded from centimeter-based source dimensions.
+      function createD1Svg(){
+        var ns = 'http://www.w3.org/2000/svg';
+        var svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('viewBox', '0 0 18 30');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('focusable', 'false');
+
+        var silhouette = document.createElementNS(ns, 'path');
+        silhouette.setAttribute('d', 'M0.15 9 A8.85 8.85 0 0 1 17.85 9 L17.85 29.85 L0.15 29.85 Z');
+        silhouette.setAttribute('fill', '#8a5a35');
+        silhouette.setAttribute('stroke', '#050505');
+        silhouette.setAttribute('stroke-width', '0.3');
+        svg.appendChild(silhouette);
+
+        [5.8875, 3.8875, 1.8875].forEach(function(radius){
+          var ring = document.createElementNS(ns, 'circle');
+          ring.setAttribute('cx', '9');
+          ring.setAttribute('cy', '15');
+          ring.setAttribute('r', String(radius));
+          ring.setAttribute('fill', 'none');
+          ring.setAttribute('stroke', '#050505');
+          ring.setAttribute('stroke-width', '0.225');
+          svg.appendChild(ring);
+        });
+
+        return svg;
+      }
+
+      function createUSPSASvg(){
+        var ns = 'http://www.w3.org/2000/svg';
+        var svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('viewBox', '0 0 18 30');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('focusable', 'false');
+
+        var outline = document.createElementNS(ns, 'path');
+        outline.setAttribute('d', 'M6 0 L12 0 L12 6 L16 6 L18 8 L18 24 L15 30 L3 30 L0 24 L0 8 L2 6 L6 6 Z');
+        outline.setAttribute('fill', '#050505');
+        svg.appendChild(outline);
+
+        var silhouette = document.createElementNS(ns, 'path');
+        silhouette.setAttribute('d', 'M6.3 0.3 L11.7 0.3 L11.7 6.3 L15.7 6.3 L17.7 8.3 L17.7 23.93 L14.7 29.7 L3.3 29.7 L0.3 23.93 L0.3 8.3 L2.3 6.3 L6.3 6.3 Z');
+        silhouette.setAttribute('fill', '#8a5a35');
+        svg.appendChild(silhouette);
+
+        var cZone = document.createElementNS(ns, 'path');
+        cZone.setAttribute('d', 'M6.1125 6.1125 L11.8875 6.1125 L14.8875 8.1125 L14.8875 18.8875 L12.8875 23.8875 L5.1125 23.8875 L3.1125 18.8875 L3.1125 8.1125 Z');
+        cZone.setAttribute('fill', 'none');
+        cZone.setAttribute('stroke', '#050505');
+        cZone.setAttribute('stroke-width', '0.225');
+        svg.appendChild(cZone);
+
+        var upperA = document.createElementNS(ns, 'path');
+        upperA.setAttribute('d', 'M7.1125 1.1125 L10.8875 1.1125 L10.8875 2.8875 L7.1125 2.8875 Z');
+        upperA.setAttribute('fill', 'none');
+        upperA.setAttribute('stroke', '#050505');
+        upperA.setAttribute('stroke-width', '0.225');
+        svg.appendChild(upperA);
+
+        var lowerA = document.createElementNS(ns, 'rect');
+        lowerA.setAttribute('x', '6.1125');
+        lowerA.setAttribute('y', '8.1125');
+        lowerA.setAttribute('width', '5.775');
+        lowerA.setAttribute('height', '10.775');
+        lowerA.setAttribute('fill', 'none');
+        lowerA.setAttribute('stroke', '#050505');
+        lowerA.setAttribute('stroke-width', '0.225');
+        svg.appendChild(lowerA);
+
+        return svg;
+      }
+
+      function createIPSCMiniSvg(){
+        var ns = 'http://www.w3.org/2000/svg';
+        var svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('viewBox', '0 0 30 37.5');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('focusable', 'false');
+
+        var outline = document.createElementNS(ns, 'polygon');
+        outline.setAttribute('points', '10,0 20,0 30,12.5 30,25 20,37.5 10,37.5 0,25 0,12.5');
+        outline.setAttribute('fill', '#050505');
+        svg.appendChild(outline);
+
+        var silhouette = document.createElementNS(ns, 'polygon');
+        silhouette.setAttribute('points', '10.35,0.35 19.65,0.35 29.65,12.62 29.65,24.88 19.65,37.15 10.35,37.15 0.35,24.88 0.35,12.62');
+        silhouette.setAttribute('fill', '#8a5a35');
+        svg.appendChild(silhouette);
+
+        var cZone = document.createElementNS(ns, 'polygon');
+        cZone.setAttribute('points', '10,0 20,0 25,12.5 25,22 18.5,30 11.5,30 5,22 5,12.5');
+        cZone.setAttribute('fill', 'none');
+        cZone.setAttribute('stroke', '#050505');
+        cZone.setAttribute('stroke-width', '0.375');
+        svg.appendChild(cZone);
+
+        var aZone = document.createElementNS(ns, 'polygon');
+        aZone.setAttribute('points', '13,1.5 17,1.5 20,12.5 20,18 17,23 13,23 10,18 10,12.5');
+        aZone.setAttribute('fill', 'none');
+        aZone.setAttribute('stroke', '#050505');
+        aZone.setAttribute('stroke-width', '0.375');
+        svg.appendChild(aZone);
+
+        return svg;
+      }
+
+      function createBowlingPinSvg(){
+        var ns = 'http://www.w3.org/2000/svg';
+        var svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('viewBox', '0 0 4.8 15');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('focusable', 'false');
+
+        var outline = document.createElementNS(ns, 'path');
+        outline.setAttribute('d', 'M3.3477 14.9958 c0.0459 0.0002 0.0917 -0.0202 0.1219 -0.0541 c0.0073 -0.0081 0.0138 -0.0170 0.0194 -0.0265 c0.0527 -0.0999 0.1203 -0.2342 0.1699 -0.3358 c0.2474 -0.5075 0.4639 -1.0378 0.6376 -1.5746 c0.2322 -0.7225 0.3986 -1.4724 0.4587 -2.2290 c0.0447 -0.5756 0.0187 -1.1619 -0.1049 -1.7268 c-0.0922 -0.4250 -0.2397 -0.8435 -0.4056 -1.2453 c-0.2153 -0.5259 -0.5517 -1.1951 -0.7359 -1.7319 c-0.1042 -0.3030 -0.1805 -0.6195 -0.2046 -0.9393 c-0.0384 -0.5175 0.0321 -1.0413 0.1215 -1.5505 c0.0880 -0.4864 0.2708 -1.2735 0.2972 -1.7582 c0.0159 -0.2638 -0.0014 -0.5317 -0.0571 -0.7903 c-0.0428 -0.1992 -0.1056 -0.3990 -0.2207 -0.5693 c-0.2387 -0.3555 -0.6348 -0.4641 -1.0453 -0.4636 c-0.4105 -0.0005 -0.8066 0.1081 -1.0453 0.4636 c-0.1152 0.1703 -0.1779 0.3702 -0.2207 0.5693 c-0.0557 0.2586 -0.0730 0.5266 -0.0571 0.7903 c0.0257 0.4820 0.2106 1.2769 0.2972 1.7582 c0.0967 0.5528 0.1730 1.1226 0.1086 1.6831 c-0.0349 0.2968 -0.1138 0.5898 -0.2142 0.8712 c-0.1807 0.5078 -0.5088 1.1673 -0.7134 1.6673 c-0.1659 0.4020 -0.3136 0.8203 -0.4056 1.2453 c-0.1236 0.5649 -0.1496 1.1512 -0.1049 1.7268 c0.0325 0.4208 0.1013 0.8447 0.1931 1.2567 c0.1365 0.6119 0.3303 1.2161 0.5673 1.7965 c0.1329 0.3253 0.2853 0.6560 0.4452 0.9690 c0.0000 0.0000 0.0569 0.1101 0.0569 0.1101 s0.0012 0.0023 0.0012 0.0023 s0.0014 0.0023 0.0014 0.0023 s0.0014 0.0023 0.0014 0.0023 c0.0054 0.0093 0.0122 0.0184 0.0194 0.0265 c0.0147 0.0167 0.0349 0.0309 0.0548 0.0397 c0.0129 0.0056 0.0264 0.0100 0.0403 0.0121 c0.0061 0.0009 0.0126 0.0019 0.0190 0.0021 C1.4523 15.0000 3.3393 14.9930 3.3477 14.9958 z');
+        outline.setAttribute('fill', '#050505');
+        svg.appendChild(outline);
+
+        var pin = document.createElementNS(ns, 'path');
+        pin.setAttribute('d', 'M3.3477 14.9958 c0.0459 0.0002 0.0917 -0.0202 0.1219 -0.0541 c0.0073 -0.0081 0.0138 -0.0170 0.0194 -0.0265 c0.0527 -0.0999 0.1203 -0.2342 0.1699 -0.3358 c0.2474 -0.5075 0.4639 -1.0378 0.6376 -1.5746 c0.2322 -0.7225 0.3986 -1.4724 0.4587 -2.2290 c0.0447 -0.5756 0.0187 -1.1619 -0.1049 -1.7268 c-0.0922 -0.4250 -0.2397 -0.8435 -0.4056 -1.2453 c-0.2153 -0.5259 -0.5517 -1.1951 -0.7359 -1.7319 c-0.1042 -0.3030 -0.1805 -0.6195 -0.2046 -0.9393 c-0.0384 -0.5175 0.0321 -1.0413 0.1215 -1.5505 c0.0880 -0.4864 0.2708 -1.2735 0.2972 -1.7582 c0.0159 -0.2638 -0.0014 -0.5317 -0.0571 -0.7903 c-0.0428 -0.1992 -0.1056 -0.3990 -0.2207 -0.5693 c-0.2387 -0.3555 -0.6348 -0.4641 -1.0453 -0.4636 c-0.4105 -0.0005 -0.8066 0.1081 -1.0453 0.4636 c-0.1152 0.1703 -0.1779 0.3702 -0.2207 0.5693 c-0.0557 0.2586 -0.0730 0.5266 -0.0571 0.7903 c0.0257 0.4820 0.2106 1.2769 0.2972 1.7582 c0.0967 0.5528 0.1730 1.1226 0.1086 1.6831 c-0.0349 0.2968 -0.1138 0.5898 -0.2142 0.8712 c-0.1807 0.5078 -0.5088 1.1673 -0.7134 1.6673 c-0.1659 0.4020 -0.3136 0.8203 -0.4056 1.2453 c-0.1236 0.5649 -0.1496 1.1512 -0.1049 1.7268 c0.0325 0.4208 0.1013 0.8447 0.1931 1.2567 c0.1365 0.6119 0.3303 1.2161 0.5673 1.7965 c0.1329 0.3253 0.2853 0.6560 0.4452 0.9690 c0.0000 0.0000 0.0569 0.1101 0.0569 0.1101 s0.0012 0.0023 0.0012 0.0023 s0.0014 0.0023 0.0014 0.0023 s0.0014 0.0023 0.0014 0.0023 c0.0054 0.0093 0.0122 0.0184 0.0194 0.0265 c0.0147 0.0167 0.0349 0.0309 0.0548 0.0397 c0.0129 0.0056 0.0264 0.0100 0.0403 0.0121 c0.0061 0.0009 0.0126 0.0019 0.0190 0.0021 C1.4523 15.0000 3.3393 14.9930 3.3477 14.9958 z');
+        pin.setAttribute('fill', '#ffffff');
+        pin.setAttribute('transform', 'translate(2.4 7.5) scale(0.93 0.98) translate(-2.4 -7.5)');
+        svg.appendChild(pin);
+
+        return svg;
+      }
+
       function createTargetElement(board, label, size, left, top, shape, color, numbered){
         var target = document.createElement('div');
+        var dims = getTargetDimensions(shape, size);
         target.className = 'target ' + shape;
-        target.style.width = size.toFixed(2) + 'px';
-        target.style.height = size.toFixed(2) + 'px';
+        target.style.width = dims.width.toFixed(2) + 'px';
+        target.style.height = dims.height.toFixed(2) + 'px';
         target.style.left = left.toFixed(2) + 'px';
         target.style.top = top.toFixed(2) + 'px';
-        target.style.backgroundColor = color;
-        target.style.color = contrastColor(color);
+        if(shape === 'd1'){
+          target.appendChild(createD1Svg());
+          target.style.color = '#fff';
+        } else if(shape === 'uspsa'){
+          target.appendChild(createUSPSASvg());
+          target.style.color = '#fff';
+        } else if(shape === 'ipsc-mini'){
+          target.appendChild(createIPSCMiniSvg());
+          target.style.color = '#fff';
+        } else if(shape === 'bowling-pin'){
+          target.appendChild(createBowlingPinSvg());
+          target.style.color = '#111';
+        } else {
+          target.style.backgroundColor = color;
+          target.style.color = contrastColor(color);
+        }
         var fontSize = Math.max(12, size * 0.32);
         target.style.fontSize = fontSize.toFixed(2) + 'px';
         if(numbered){
@@ -809,18 +1728,19 @@
         return { cx: 0, cy: Math.max(0, height - cursor) };
       }
 
-      function borderSpawnData(metrics, size, placement, alternateEdge){
+      function borderSpawnData(metrics, dims, placement, alternateEdge){
         var perimeter = Math.max(1, metrics.width * 2 + metrics.height * 2);
+        var spacing = Math.max(dims.width, dims.height);
         var offset = 0;
         if(placement === 'ordered'){
           if(alternateEdge){
             var pairIndex = Math.floor((continuousState ? continuousState.spawnIndex : 0) / 2);
-            var baseOffset = orderedLinearOffsetAt(perimeter, size, pairIndex);
+            var baseOffset = orderedLinearOffsetAt(perimeter, spacing, pairIndex);
             offset = (continuousState && (continuousState.spawnIndex % 2 === 1))
               ? (baseOffset + perimeter / 2)
               : baseOffset;
           } else {
-            offset = orderedLinearOffset(perimeter, size);
+            offset = orderedLinearOffset(perimeter, spacing);
           }
         } else {
           offset = Math.random() * perimeter;
@@ -832,8 +1752,8 @@
         var dy = targetCy - point.cy;
         var distance = Math.hypot(dx, dy) || 1;
         return {
-          x: point.cx - size / 2,
-          y: point.cy - size / 2,
+          x: point.cx - dims.width / 2,
+          y: point.cy - dims.height / 2,
           dirX: dx / distance,
           dirY: dy / distance
         };
@@ -842,32 +1762,33 @@
       function createContinuousTarget(){
         if(!continuousState || !els.targetBoard) return;
         var metrics = getContinuousBoardMetrics();
-        var shape = els.targetShape && els.targetShape.value === 'square' ? 'square' : 'circle';
+        var shape = getSelectedTargetShape();
         var numbered = !!(els.targetNumbered && els.targetNumbered.checked);
         var speed = Math.max(10, parseFloat(els.flowSpeed.value) || 0);
         var startEdge = els.flowEdge && els.flowEdge.value ? els.flowEdge.value : 'left';
         var alternateEdge = !!(els.flowAlternate && els.flowAlternate.checked);
         var placement = els.flowPlacement && els.flowPlacement.value ? els.flowPlacement.value : 'random';
         var size = Math.max(10, sampleTargetSize(getTargetSizeConfig()));
+        var dims = getTargetDimensions(shape, size);
         var x = 0;
         var y = 0;
         var vx = 0;
         var vy = 0;
         if(startEdge === 'border'){
-          var border = borderSpawnData(metrics, size, placement, alternateEdge);
+          var border = borderSpawnData(metrics, dims, placement, alternateEdge);
           x = border.x;
           y = border.y;
           vx = border.dirX * speed;
           vy = border.dirY * speed;
         } else {
           var edge = alternateEdge && (continuousState.spawnIndex % 2 === 1) ? oppositeEdge(startEdge) : startEdge;
-          var maxOffset = (edge === 'left' || edge === 'right') ? Math.max(0, metrics.height - size) : Math.max(0, metrics.width - size);
+          var maxOffset = (edge === 'left' || edge === 'right') ? Math.max(0, metrics.height - dims.height) : Math.max(0, metrics.width - dims.width);
           var offset = placement === 'ordered'
             ? (alternateEdge ? orderedLinearOffset(maxOffset, size) : orderedOffset(maxOffset, size))
             : Math.random() * maxOffset;
 
           if(edge === 'left'){
-            x = -size;
+            x = -dims.width;
             y = offset;
             vx = speed;
           } else if(edge === 'right'){
@@ -876,7 +1797,7 @@
             vx = -speed;
           } else if(edge === 'top'){
             x = offset;
-            y = -size;
+            y = -dims.height;
             vy = speed;
           } else {
             x = offset;
@@ -889,7 +1810,7 @@
         var label = continuousState.nextLabel;
         continuousState.nextLabel += 1;
         var el = createTargetElement(els.targetBoard, label, size, x, y, shape, resolveTargetColor(continuousState.spawnIndex - 1), numbered);
-        continuousState.targets.push({ el: el, x: x, y: y, vx: vx, vy: vy, size: size });
+        continuousState.targets.push({ el: el, x: x, y: y, vx: vx, vy: vy, width: dims.width, height: dims.height });
       }
 
       function stepContinuousTargets(now){
@@ -914,10 +1835,10 @@
           target.x += target.vx * dt;
           target.y += target.vy * dt;
           var outOfBounds = (
-            target.x > metrics.width + target.size ||
-            target.x + target.size < 0 ||
-            target.y > metrics.height + target.size ||
-            target.y + target.size < 0
+            target.x > metrics.width + target.width ||
+            target.x + target.width < 0 ||
+            target.y > metrics.height + target.height ||
+            target.y + target.height < 0
           );
           if(outOfBounds){
             if(target.el && target.el.parentNode){ target.el.parentNode.removeChild(target.el); }
@@ -929,6 +1850,86 @@
         }
         continuousState.targets = survivors;
         continuousRafId = window.requestAnimationFrame(stepContinuousTargets);
+      }
+
+      function getSwingerConfig(){
+        var physicalActive = canUseSwingPhysicalDimensions();
+        var radius = Math.max(10, parseFloat(els.swingTargetHeight.value) || 300);
+        var axisHeight = Math.max(0, parseFloat(els.swingAxisHeight.value) || 0);
+        if(physicalActive){
+          radius = Math.max(10, projectedFeetToPx(parseFloat(els.swingTargetHeightFt.value) || 2));
+          axisHeight = Math.max(0, projectedFeetToPx(parseFloat(els.swingAxisHeightFt.value) || 0));
+        }
+        return {
+          peakRate: Math.max(1, parseFloat(els.swingRate.value) || 180),
+          radius: radius,
+          axisHeight: axisHeight
+        };
+      }
+
+      function swingerAngleFromPhase(phase){
+        var segment = Math.floor(phase) % 4;
+        var u = phase - Math.floor(phase);
+        if(segment === 0){ return 90 * (1 - u * u); }
+        if(segment === 1){ return -90 * (2 * u - u * u); }
+        if(segment === 2){ return -90 * (1 - u * u); }
+        return 90 * (2 * u - u * u);
+      }
+
+      function renderSwingerTarget(angleDeg){
+        var board = els.targetBoard;
+        if(!board) return null;
+        board.innerHTML = '';
+        var shape = getSelectedTargetShape();
+        var size = Math.max(10, getTargetSizeConfig().fixedSize);
+        var dims = getTargetDimensions(shape, size);
+        var metrics = getContinuousBoardMetrics();
+        var config = getSwingerConfig();
+        var pivotX = metrics.width / 2;
+        var pivotY = metrics.height - config.axisHeight;
+        var radians = angleDeg * Math.PI / 180;
+        var centerX = pivotX + Math.sin(radians) * config.radius;
+        var centerY = pivotY - Math.cos(radians) * config.radius;
+        var target = createTargetElement(board, 1, size, centerX - dims.width / 2, centerY - dims.height / 2, shape, resolveTargetColor(0), false);
+        target.classList.add('swinger-target');
+        target.style.transform = 'rotate(' + angleDeg.toFixed(3) + 'deg)';
+        return target;
+      }
+
+      function stepSwingerTarget(now){
+        if(!swingerState){
+          swingerRafId = 0;
+          return;
+        }
+        if(!swingerState.lastFrame){ swingerState.lastFrame = now; }
+        var dt = Math.max(0, (now - swingerState.lastFrame) / 1000);
+        swingerState.lastFrame = now;
+        var config = getSwingerConfig();
+        var segmentDuration = Math.max(0.05, 180 / config.peakRate);
+        swingerState.phase = (swingerState.phase + dt / segmentDuration) % 4;
+        renderSwingerTarget(swingerAngleFromPhase(swingerState.phase));
+        swingerRafId = window.requestAnimationFrame(stepSwingerTarget);
+      }
+
+      function startSwingerRun(){
+        stopRun(true);
+        swingerState = { running: true, lastFrame: 0, phase: 0 };
+        els.startBtn.disabled = true;
+        els.stopBtn.disabled = false;
+        els.selectedDelay.textContent = '—';
+        setBoardHidden(false);
+        awaitingReveal = false;
+        setStatus('Swinger active');
+        swingerRafId = window.requestAnimationFrame(stepSwingerTarget);
+      }
+
+      function stopSwingerRun(skipStatus){
+        if(swingerRafId){
+          window.cancelAnimationFrame(swingerRafId);
+          swingerRafId = 0;
+        }
+        if(swingerState && !skipStatus){ setStatus('Stopped'); }
+        swingerState = null;
       }
 
       function startContinuousRun(){
@@ -948,7 +1949,6 @@
         setBoardHidden(false);
         awaitingReveal = false;
         setStatus('Continuous flow active');
-        setMenuCollapsed(true);
         continuousRafId = window.requestAnimationFrame(stepContinuousTargets);
       }
 
@@ -967,11 +1967,18 @@
       }
 
       function currentSettings(){
-        return {
+        return normalizeSettings({
           sessionMode: els.sessionMode ? els.sessionMode.value : 'board',
+          timerMode: els.timerMode ? els.timerMode.value : 'single',
           delayMin: parseFloat(els.delayMin.value) || 0,
           delayMax: parseFloat(els.delayMax.value) || 0,
           workDuration: parseFloat(els.workDuration.value) || 0,
+          repeats: parseInt(els.repeats.value, 10) || 0,
+          reloadTime: parseFloat(els.reloadTime.value) || 0,
+          shotCount: parseInt(els.shotCount.value, 10) || 0,
+          shotSplit: parseFloat(els.shotSplit.value) || 0,
+          firstShotTime: parseFloat(els.firstShotTime.value) || 0,
+          shotReloads: parseInt(els.shotReloads.value, 10) || 0,
           startFreq: parseFloat(els.startFreq.value) || 0,
           startLen: parseFloat(els.startLen.value) || 0,
           stopFreq: parseFloat(els.stopFreq.value) || 0,
@@ -980,33 +1987,54 @@
           targetShape: els.targetShape.value,
           targetColor: els.targetColor.value,
           targetLayout: els.targetLayout.value,
+          gridRows: parseInt(els.gridRows.value, 10) || 0,
+          gridCols: parseInt(els.gridCols.value, 10) || 0,
+          gridSpread: parseFloat(els.gridSpread.value) || 100,
+          useGridPhysicalSpacing: !!(els.useGridPhysicalSpacing && els.useGridPhysicalSpacing.checked),
+          gridSpacingFt: parseFloat(els.gridSpacingFt.value) || 0,
           targetNumbered: !!els.targetNumbered.checked,
           randomTargetColors: !!(els.randomTargetColors && els.randomTargetColors.checked),
           darkBoard: !!(els.darkBoard && els.darkBoard.checked),
           randomSizes: !!els.randomSizes.checked,
           hideTargets: !!els.hideTargets.checked,
           targetSize: parseFloat(els.targetSize.value) || 0,
+          useDistanceScale: !!(els.useDistanceScale && els.useDistanceScale.checked),
+          screenDistanceFt: parseFloat(els.screenDistanceFt.value) || 0,
+          targetDistanceYd: parseFloat(els.targetDistanceYd.value) || 0,
           targetSizeMin: parseFloat(els.targetSizeMin.value) || 0,
           targetSizeMax: parseFloat(els.targetSizeMax.value) || 0,
           flowEdge: els.flowEdge ? els.flowEdge.value : 'left',
           flowPlacement: els.flowPlacement ? els.flowPlacement.value : 'random',
           flowAlternate: !!(els.flowAlternate && els.flowAlternate.checked),
           flowSpeed: parseFloat(els.flowSpeed.value) || 0,
-          flowRate: parseFloat(els.flowRate.value) || 0
-        };
+          flowRate: parseFloat(els.flowRate.value) || 0,
+          swingRate: parseFloat(els.swingRate.value) || 0,
+          swingTargetHeight: parseFloat(els.swingTargetHeight.value) || 0,
+          swingAxisHeight: parseFloat(els.swingAxisHeight.value) || 0,
+          useSwingPhysicalDimensions: !!(els.useSwingPhysicalDimensions && els.useSwingPhysicalDimensions.checked),
+          swingTargetHeightFt: parseFloat(els.swingTargetHeightFt.value) || 0,
+          swingAxisHeightFt: parseFloat(els.swingAxisHeightFt.value) || 0
+        });
       }
 
       function applySettings(state, opts){
         opts = opts || {};
-        if(!state) state = {};
+        state = normalizeSettings(state);
         function assignValue(el, val){ if(!el || val == null || val === '') return; el.value = val; }
         function assignNumber(el, val){ if(!el || val == null || val === '') return; el.value = val; }
         function assignCheckbox(el, val){ if(!el || val === undefined) return; el.checked = !!val; }
 
         assignValue(els.sessionMode, state.sessionMode);
+        assignValue(els.timerMode, state.timerMode);
         assignNumber(els.delayMin, state.delayMin);
         assignNumber(els.delayMax, state.delayMax);
         assignNumber(els.workDuration, state.workDuration);
+        assignNumber(els.repeats, state.repeats);
+        assignNumber(els.reloadTime, state.reloadTime);
+        assignNumber(els.shotCount, state.shotCount);
+        assignNumber(els.shotSplit, state.shotSplit);
+        assignNumber(els.firstShotTime, state.firstShotTime);
+        assignNumber(els.shotReloads, state.shotReloads);
         assignNumber(els.startFreq, state.startFreq);
         assignNumber(els.startLen, state.startLen);
         assignNumber(els.stopFreq, state.stopFreq);
@@ -1015,12 +2043,20 @@
         assignValue(els.targetShape, state.targetShape);
         assignValue(els.targetColor, state.targetColor);
         assignValue(els.targetLayout, state.targetLayout);
+        assignNumber(els.gridRows, state.gridRows);
+        assignNumber(els.gridCols, state.gridCols);
+        assignNumber(els.gridSpread, state.gridSpread);
+        assignCheckbox(els.useGridPhysicalSpacing, state.useGridPhysicalSpacing);
+        assignNumber(els.gridSpacingFt, state.gridSpacingFt);
         assignCheckbox(els.targetNumbered, state.targetNumbered);
         assignCheckbox(els.randomTargetColors, state.randomTargetColors);
         assignCheckbox(els.darkBoard, state.darkBoard);
         assignCheckbox(els.randomSizes, state.randomSizes);
         assignCheckbox(els.hideTargets, state.hideTargets);
         assignNumber(els.targetSize, state.targetSize);
+        assignCheckbox(els.useDistanceScale, state.useDistanceScale);
+        assignNumber(els.screenDistanceFt, state.screenDistanceFt);
+        assignNumber(els.targetDistanceYd, state.targetDistanceYd);
         assignNumber(els.targetSizeMin, state.targetSizeMin);
         assignNumber(els.targetSizeMax, state.targetSizeMax);
         assignValue(els.flowEdge, state.flowEdge);
@@ -1028,6 +2064,12 @@
         assignCheckbox(els.flowAlternate, state.flowAlternate);
         assignNumber(els.flowSpeed, state.flowSpeed);
         assignNumber(els.flowRate, state.flowRate);
+        assignNumber(els.swingRate, state.swingRate);
+        assignNumber(els.swingTargetHeight, state.swingTargetHeight);
+        assignNumber(els.swingAxisHeight, state.swingAxisHeight);
+        assignCheckbox(els.useSwingPhysicalDimensions, state.useSwingPhysicalDimensions);
+        assignNumber(els.swingTargetHeightFt, state.swingTargetHeightFt);
+        assignNumber(els.swingAxisHeightFt, state.swingAxisHeightFt);
 
         updateModeUI();
         updateBoardTheme();
@@ -1053,10 +2095,163 @@
         }
       }
 
+      function isGridLayoutActive(){
+        return !isContinuousMode() && !!(els.targetLayout && els.targetLayout.value === 'grid');
+      }
+
+      function syncGridLimits(count){
+        count = Math.max(1, Math.floor(count || parseFloat(els.targetCount.value) || 1));
+        ['gridRows','gridCols'].forEach(function(id){
+          var input = els[id];
+          if(!input) return;
+          input.max = String(count);
+          var value = Math.floor(parseFloat(input.value) || 0);
+          if(value > count){ input.value = String(count); }
+        });
+      }
+
+      function resolveGridDimensions(count){
+        count = Math.max(1, Math.floor(count || parseFloat(els.targetCount.value) || 1));
+        var aspect = 1;
+        var board = els.targetBoard;
+        if(board){
+          var rect = board.getBoundingClientRect();
+          if(rect && rect.width && rect.height){ aspect = rect.width / rect.height; }
+        }
+        var requestedGrid = getGridConfig(count);
+        var cols = requestedGrid.cols || Math.max(1, Math.ceil(Math.sqrt(count * (aspect || 1))));
+        var rows = requestedGrid.rows || Math.max(1, Math.ceil(count / cols));
+        if(requestedGrid.rows && !requestedGrid.cols){ cols = Math.max(1, Math.ceil(count / rows)); }
+        if(requestedGrid.cols && !requestedGrid.rows){ rows = Math.max(1, Math.ceil(count / cols)); }
+        if(rows * cols < count){
+          if(requestedGrid.rows && !requestedGrid.cols){ cols = Math.ceil(count / rows); }
+          else if(requestedGrid.cols && !requestedGrid.rows){ rows = Math.ceil(count / cols); }
+          else if(rows <= cols){ rows = Math.ceil(count / cols); }
+          else { cols = Math.ceil(count / rows); }
+        }
+        return { rows: rows, cols: cols, requestedRows: requestedGrid.rows, requestedCols: requestedGrid.cols };
+      }
+
+      function updateGridOverrideState(count){
+        count = Math.max(1, Math.floor(count || parseFloat(els.targetCount.value) || 1));
+        if(!isGridLayoutActive()){
+          if(els.gridRows){ els.gridRows.classList.remove('grid-overridden'); }
+          if(els.gridCols){ els.gridCols.classList.remove('grid-overridden'); }
+          if(els.gridRowsLabel){ els.gridRowsLabel.classList.remove('grid-overridden'); }
+          if(els.gridColsLabel){ els.gridColsLabel.classList.remove('grid-overridden'); }
+          return;
+        }
+        var resolved = resolveGridDimensions(count);
+        if(els.gridRows){
+          els.gridRows.classList.toggle('grid-overridden', resolved.requestedRows > 0 && resolved.rows !== resolved.requestedRows);
+          if(els.gridRowsLabel){ els.gridRowsLabel.classList.toggle('grid-overridden', resolved.requestedRows > 0 && resolved.rows !== resolved.requestedRows); }
+        }
+        if(els.gridCols){
+          els.gridCols.classList.toggle('grid-overridden', resolved.requestedCols > 0 && resolved.cols !== resolved.requestedCols);
+          if(els.gridColsLabel){ els.gridColsLabel.classList.toggle('grid-overridden', resolved.requestedCols > 0 && resolved.cols !== resolved.requestedCols); }
+        }
+      }
+
+      function getGridConfig(count){
+        syncGridLimits(count);
+        function readGridValue(input){
+          if(!input) return 0;
+          var value = Math.floor(parseFloat(input.value) || 0);
+          if(value < 1) return 0;
+          return Math.min(value, Math.max(1, count));
+        }
+        return {
+          rows: readGridValue(els.gridRows),
+          cols: readGridValue(els.gridCols)
+        };
+      }
+
+      function getGridSpread(){
+        var value = parseFloat(els.gridSpread && els.gridSpread.value);
+        if(!isFinite(value)){ value = 100; }
+        return Math.min(200, Math.max(25, value)) / 100;
+      }
+
+      function projectedFeetToPx(feet){
+        feet = Math.max(0, parseFloat(feet) || 0);
+        var screenFt = Math.max(0.1, parseFloat(els.screenDistanceFt.value) || 2);
+        var targetYd = Math.max(0.1, parseFloat(els.targetDistanceYd.value) || 10);
+        var projectedScreenFt = feet * (screenFt / (targetYd * 3));
+        return projectedScreenFt * 12 * calibration.pxPerIn;
+      }
+
+      function getGridPhysicalSpacingPx(){
+        var distanceActive = canUseDistanceScale() && !!(els.useDistanceScale && els.useDistanceScale.checked);
+        if(!distanceActive || !(els.useGridPhysicalSpacing && els.useGridPhysicalSpacing.checked)){
+          return 0;
+        }
+        var feet = parseFloat(els.gridSpacingFt && els.gridSpacingFt.value);
+        if(!isFinite(feet)){ feet = 2; }
+        feet = Math.min(50, Math.max(0.1, feet));
+        return projectedFeetToPx(feet);
+      }
+
+      function canUseSwingPhysicalDimensions(){
+        return canUseDistanceScale() && !!(els.useDistanceScale && els.useDistanceScale.checked) && !!(els.useSwingPhysicalDimensions && els.useSwingPhysicalDimensions.checked);
+      }
+
+      function toggleGridInputs(){
+        var active = isGridLayoutActive();
+        var gridOptions = $('gridOptions');
+        if(gridOptions){ gridOptions.hidden = !active; }
+        var physicalAvailable = active && canUseDistanceScale() && !!(els.useDistanceScale && els.useDistanceScale.checked);
+        var physicalActive = physicalAvailable && !!(els.useGridPhysicalSpacing && els.useGridPhysicalSpacing.checked);
+        if(els.useGridPhysicalSpacingBtn){ els.useGridPhysicalSpacingBtn.hidden = !physicalAvailable; }
+        if(els.gridSpacingFtLabel){ els.gridSpacingFtLabel.hidden = !physicalActive; }
+        if(els.gridSpread){ els.gridSpread.disabled = physicalActive; }
+        if(els.useGridPhysicalSpacing && !physicalAvailable){ els.useGridPhysicalSpacing.checked = false; }
+        syncGridLimits(parseInt(els.targetCount.value, 10) || 1);
+        updateGridOverrideState(parseInt(els.targetCount.value, 10) || 1);
+      }
+
+      function toggleSwingInputs(){
+        var available = isSwingerMode() && canUseDistanceScale() && !!(els.useDistanceScale && els.useDistanceScale.checked);
+        var active = available && !!(els.useSwingPhysicalDimensions && els.useSwingPhysicalDimensions.checked);
+        if(els.useSwingPhysicalDimensionsBtn){ els.useSwingPhysicalDimensionsBtn.hidden = !available; }
+        if(els.swingTargetHeightFtLabel){ els.swingTargetHeightFtLabel.hidden = !active; }
+        if(els.swingAxisHeightFtLabel){ els.swingAxisHeightFtLabel.hidden = !active; }
+        if(els.swingTargetHeight){ els.swingTargetHeight.disabled = active; }
+        if(els.swingAxisHeight){ els.swingAxisHeight.disabled = active; }
+        if(els.useSwingPhysicalDimensions && !available){ els.useSwingPhysicalDimensions.checked = false; }
+      }
+
+      function updateDistanceScaleSummary(distanceAvailable, distanceActive){
+        if(!els.distanceScaleSummary) return;
+        if(!distanceAvailable){
+          els.distanceScaleSummary.textContent = '';
+          return;
+        }
+        if(!distanceActive){
+          els.distanceScaleSummary.textContent = '';
+          return;
+        }
+        var size = getDistanceScaleSize();
+        var percent = getDistanceScalePercent();
+        els.distanceScaleSummary.textContent = size.toFixed(0) + ' px tall, ' + percent.toFixed(1) + '% true size';
+      }
+
       function toggleSizeInputs(){
-        var random = els.randomSizes.checked;
-        $('fixedSizeOptions').hidden = random;
-        $('randomSizeOptions').hidden = !random;
+        var distanceAvailable = canUseDistanceScale();
+        var distanceActive = distanceAvailable && !!(els.useDistanceScale && els.useDistanceScale.checked);
+        var random = !distanceActive && !!(els.randomSizes && els.randomSizes.checked);
+        var randomSizingApplies = !isSwingerMode();
+        var fixedOptions = $('fixedSizeOptions');
+        var randomOptions = $('randomSizeOptions');
+        if(els.distanceScaleOptions){ els.distanceScaleOptions.hidden = !distanceAvailable; }
+        if(els.useDistanceScaleBtn){ els.useDistanceScaleBtn.hidden = !distanceAvailable; }
+        if(els.screenDistanceLabel){ els.screenDistanceLabel.hidden = !distanceActive; }
+        if(els.targetDistanceLabel){ els.targetDistanceLabel.hidden = !distanceActive; }
+        if(els.randomSizesBtn){ els.randomSizesBtn.hidden = isSwingerMode() || distanceActive; }
+        if(fixedOptions){ fixedOptions.hidden = distanceActive || (randomSizingApplies && random); }
+        if(randomOptions){ randomOptions.hidden = distanceActive || !randomSizingApplies || !random; }
+        updateDistanceScaleSummary(distanceAvailable, distanceActive);
+        toggleGridInputs();
+        toggleSwingInputs();
       }
 
       function handleResize(){
@@ -1068,10 +2263,12 @@
       els.testStart.addEventListener('click', async function(){ await ensureAudio(); beepNow(Math.max(50, parseFloat(els.startFreq.value) || 0), Math.max(0.05, parseFloat(els.startLen.value) || 0.1)); });
       els.testStop.addEventListener('click', async function(){ await ensureAudio(); beepNow(Math.max(50, parseFloat(els.stopFreq.value) || 0), Math.max(0.05, parseFloat(els.stopLen.value) || 0.1)); });
 
-      ['delayMin','delayMax','workDuration','startFreq','startLen','stopFreq','stopLen'].forEach(function(id){
+      ['timerMode','delayMin','delayMax','workDuration','repeats','reloadTime','shotCount','shotSplit','firstShotTime','shotReloads','startFreq','startLen','stopFreq','stopLen'].forEach(function(id){
         var input = $(id);
         if(!input) return;
-        input.addEventListener('change', persist);
+        var updateTimerSetting = function(){ updateModeUI(); persist(); };
+        input.addEventListener('input', updateTimerSetting);
+        input.addEventListener('change', updateTimerSetting);
       });
 
       if(els.sessionMode){
@@ -1083,25 +2280,48 @@
         });
       }
 
-      ['targetCount','targetShape','targetColor','targetSize','targetSizeMin','targetSizeMax','targetLayout'].forEach(function(id){
+      ['targetCount','targetShape','targetColor','targetSize','targetSizeMin','targetSizeMax','useDistanceScale','screenDistanceFt','targetDistanceYd','targetLayout','gridRows','gridCols','gridSpread','useGridPhysicalSpacing','gridSpacingFt'].forEach(function(id){
         var input = $(id);
         if(!input) return;
-        input.addEventListener('input', function(){ renderTargets(); persist(); });
-        input.addEventListener('change', function(){ renderTargets(); persist(); });
+        input.addEventListener('input', function(){ updateModeUI(); renderTargets(); persist(); });
+        input.addEventListener('change', function(){ updateModeUI(); renderTargets(); persist(); });
       });
       els.targetNumbered.addEventListener('change', function(){ renderTargets(); persist(); });
       if(els.randomTargetColors){
-        els.randomTargetColors.addEventListener('change', function(){ renderTargets(); persist(); });
+        els.randomTargetColors.addEventListener('change', function(){ updateModeUI(); renderTargets(); persist(); });
       }
       if(els.darkBoard){
         els.darkBoard.addEventListener('change', function(){ updateBoardTheme(); persist(); });
       }
       els.randomSizes.addEventListener('change', function(){ toggleSizeInputs(); renderTargets(); persist(); });
-      ['flowEdge','flowPlacement','flowSpeed','flowRate'].forEach(function(id){
+      function bindToggleButton(button, input){
+        if(!button || !input) return;
+        button.addEventListener('click', function(){
+          if(input.disabled) return;
+          input.checked = !input.checked;
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+          syncAllToggleButtons();
+        });
+      }
+      bindToggleButton(els.targetNumberedBtn, els.targetNumbered);
+      bindToggleButton(els.randomTargetColorsBtn, els.randomTargetColors);
+      bindToggleButton(els.darkBoardBtn, els.darkBoard);
+      bindToggleButton(els.randomSizesBtn, els.randomSizes);
+      bindToggleButton(els.hideTargetsBtn, els.hideTargets);
+      bindToggleButton(els.useDistanceScaleBtn, els.useDistanceScale);
+      bindToggleButton(els.useGridPhysicalSpacingBtn, els.useGridPhysicalSpacing);
+      bindToggleButton(els.flowAlternateBtn, els.flowAlternate);
+      bindToggleButton(els.useSwingPhysicalDimensionsBtn, els.useSwingPhysicalDimensions);
+      ['flowEdge','flowPlacement','flowSpeed','flowRate','swingRate','swingTargetHeight','swingAxisHeight','useSwingPhysicalDimensions','swingTargetHeightFt','swingAxisHeightFt'].forEach(function(id){
         var input = $(id);
         if(!input) return;
-        input.addEventListener('input', persist);
-        input.addEventListener('change', persist);
+        var updateMotionSetting = function(){
+          toggleSwingInputs();
+          if((id.indexOf('swing') === 0 || id === 'useSwingPhysicalDimensions') && isSwingerMode() && !swingerState){ renderTargets(); }
+          persist();
+        };
+        input.addEventListener('input', updateMotionSetting);
+        input.addEventListener('change', updateMotionSetting);
       });
       if(els.flowAlternate){
         els.flowAlternate.addEventListener('change', persist);
@@ -1124,6 +2344,163 @@
         });
       }
 
+      function csvEscape(value){
+        var s = String(value == null ? '' : value);
+        return '"' + s.replace(/"/g, '""') + '"';
+      }
+
+      function parseCsvLine(line){
+        var out = [];
+        var cur = '';
+        var quoted = false;
+        for(var i=0;i<line.length;i++){
+          var ch = line[i];
+          if(quoted){
+            if(ch === '"' && line[i+1] === '"'){ cur += '"'; i += 1; }
+            else if(ch === '"'){ quoted = false; }
+            else { cur += ch; }
+          } else if(ch === ','){
+            out.push(cur); cur = '';
+          } else if(ch === '"'){
+            quoted = true;
+          } else {
+            cur += ch;
+          }
+        }
+        out.push(cur);
+        return out;
+      }
+
+      function exportPresetCsv(){
+        var presets = loadPresetStore();
+        var rows = ['name,preset_json'];
+        Object.keys(presets).sort().forEach(function(name){
+          rows.push(csvEscape(name) + ',' + csvEscape(JSON.stringify(normalizeSettings(presets[name]))));
+        });
+        var blob = new Blob([rows.join('\n') + '\n'], { type: 'text/csv' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'target-trainer-presets.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 0);
+      }
+
+      function importPresetCsv(file){
+        if(!file) return;
+        var reader = new FileReader();
+        reader.onload = function(){
+          var text = String(reader.result || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+          var lines = text.split('\n').filter(function(line){ return line.trim() !== ''; });
+          if(!lines.length){ alert('No presets found in file.'); return; }
+          var imported = 0;
+          var presets = loadPresetStore();
+          for(var i=1;i<lines.length;i++){
+            var cols = parseCsvLine(lines[i]);
+            var name = (cols[0] || '').trim();
+            if(!name || !cols[1]) continue;
+            try{
+              presets[name] = normalizeSettings(JSON.parse(cols[1]));
+              unmarkDefaultPresetDeleted(name);
+              imported += 1;
+            }catch(e){}
+          }
+          savePresetStore(presets);
+          fillPresetSelect();
+          alert(imported ? ('Imported ' + imported + ' preset(s).') : 'No valid presets imported.');
+        };
+        reader.readAsText(file);
+      }
+
+      function clampCalibrationHeight(value){
+        var height = parseFloat(value);
+        if(isNaN(height)){ height = 315; }
+        return Math.min(CALIBRATION_MAX_PX, Math.max(CALIBRATION_MIN_PX, height));
+      }
+
+      function updateCalibrationCard(){
+        if(!els.calibrationCard || !els.calibrationHeight) return;
+        var height = clampCalibrationHeight(els.calibrationHeight.value);
+        var width = height * (2.125 / 3.375);
+        els.calibrationCard.style.height = height.toFixed(0) + 'px';
+        els.calibrationCard.style.width = width.toFixed(0) + 'px';
+      }
+
+      function updateCalibrationStatus(){
+        var calibrated = hasCalibration();
+        if(els.calibrateBtn){
+          els.calibrateBtn.classList.toggle('calibration-state-ready', calibrated);
+          els.calibrateBtn.classList.toggle('calibration-state-missing', !calibrated);
+        }
+        if(els.calibrationIndicator){
+          els.calibrationIndicator.classList.toggle('calibration-state-ready', calibrated);
+          els.calibrationIndicator.classList.toggle('calibration-state-missing', !calibrated);
+          els.calibrationIndicator.textContent = calibrated ? ('calibration ' + calibration.pxPerIn.toFixed(1) + ' px/in') : 'uncalibrated';
+        }
+        if(!els.calibrationStatus) return;
+        els.calibrationStatus.textContent = calibrated ? ('Saved calibration: ' + calibration.pxPerIn.toFixed(1) + ' px/in.') : '';
+      }
+
+      function openCalibration(){
+        if(!els.calibrationOverlay) return;
+        if(els.calibrationHeight){
+          var height = hasCalibration() ? calibration.pxPerIn * 3.375 : 315;
+          els.calibrationHeight.value = clampCalibrationHeight(Math.round(height));
+        }
+        updateCalibrationCard();
+        updateCalibrationStatus();
+        els.calibrationOverlay.hidden = false;
+        if(els.calibrationHeight){ els.calibrationHeight.focus(); }
+      }
+
+      function closeCalibration(){
+        if(!els.calibrationOverlay) return;
+        els.calibrationOverlay.hidden = true;
+        if(els.calibrateBtn){ els.calibrateBtn.focus(); }
+      }
+
+      function confirmCalibration(){
+        if(!els.calibrationHeight) return;
+        var height = clampCalibrationHeight(els.calibrationHeight.value);
+        calibration = { pxPerIn: height / 3.375, cardHeightPx: height, savedAt: new Date().toISOString() };
+        saveCalibration(calibration);
+        updateCalibrationStatus();
+        updateModeUI();
+        renderTargets();
+        persist();
+      }
+
+      function openHelp(){
+        if(!els.helpOverlay) return;
+        els.helpOverlay.hidden = false;
+        if(els.helpClose){ els.helpClose.focus(); }
+      }
+
+      function closeHelp(){
+        if(!els.helpOverlay) return;
+        els.helpOverlay.hidden = true;
+        if(els.helpBtn){ els.helpBtn.focus(); }
+      }
+
+      if(els.helpBtn){ els.helpBtn.addEventListener('click', openHelp); }
+      if(els.helpClose){ els.helpClose.addEventListener('click', closeHelp); }
+      if(els.helpOverlay){
+        els.helpOverlay.addEventListener('click', function(e){
+          if(e.target === els.helpOverlay){ closeHelp(); }
+        });
+      }
+      if(els.calibrateBtn){ els.calibrateBtn.addEventListener('click', openCalibration); }
+      if(els.calibrationClose){ els.calibrationClose.addEventListener('click', closeCalibration); }
+      if(els.calibrationHeight){ els.calibrationHeight.addEventListener('input', updateCalibrationCard); }
+      if(els.calibrationConfirm){ els.calibrationConfirm.addEventListener('click', confirmCalibration); }
+      if(els.calibrationOverlay){
+        els.calibrationOverlay.addEventListener('click', function(e){
+          if(e.target === els.calibrationOverlay){ closeCalibration(); }
+        });
+      }
+
       fillPresetSelect();
       if(els.savePreset){
         els.savePreset.addEventListener('click', function(){
@@ -1134,6 +2511,7 @@
           var presets = loadPresetStore();
           if(presets[name] && !confirm('Overwrite preset "'+name+'"?')){ return; }
           presets[name] = currentSettings();
+          unmarkDefaultPresetDeleted(name);
           savePresetStore(presets);
           fillPresetSelect(name);
         });
@@ -1144,7 +2522,11 @@
           if(!name){ alert('Select a preset to delete.'); return; }
           if(!confirm('Delete preset "'+name+'"?')) return;
           var presets = loadPresetStore();
-          if(presets && presets[name]){ delete presets[name]; savePresetStore(presets); }
+          if(presets && presets[name]){
+            delete presets[name];
+            markDefaultPresetDeleted(name);
+            savePresetStore(presets);
+          }
           fillPresetSelect();
         });
       }
@@ -1154,19 +2536,40 @@
           if(!name) return;
           var presets = loadPresetStore();
           if(!presets[name]) return;
+          if(isRunActive()){ stopRun(true); }
           applySettings(presets[name]);
+        });
+      }
+      if(els.exportPresets){ els.exportPresets.addEventListener('click', exportPresetCsv); }
+      if(els.importPresets && els.importPresetFile){
+        els.importPresets.addEventListener('click', function(){ els.importPresetFile.click(); });
+        els.importPresetFile.addEventListener('change', function(e){
+          importPresetCsv(e.target.files && e.target.files[0]);
+          e.target.value = '';
         });
       }
 
       window.addEventListener('resize', handleResize);
       document.addEventListener('keydown', function(e){
+        var tagName = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
+        var isFormField = tagName === 'input' || tagName === 'select' || tagName === 'textarea' || (e.target && e.target.isContentEditable);
+        if(e.key === 'Escape'){
+          if(els.helpOverlay && !els.helpOverlay.hidden){ closeHelp(); return; }
+          if(els.calibrationOverlay && !els.calibrationOverlay.hidden){ closeCalibration(); return; }
+          setMenuCollapsed(!root.classList.contains('menu-collapsed'));
+          return;
+        }
+        if(isFormField){ return; }
         if(e.code === 'Space'){
           e.preventDefault();
-          if(plan){ stopRun(false); }
+          if(isRunActive()){ stopRun(false); }
           else { startRun(); }
         }
       });
       window.addEventListener('pointerdown', function(){ ensureAudio(); }, { once: true });
+
+      calibration = loadCalibration();
+      updateCalibrationStatus();
 
       var initialSettings = loadSettings();
       if(initialSettings && Object.keys(initialSettings).length){
@@ -1184,5 +2587,6 @@
       window.requestAnimationFrame(function(){ renderTargets(); });
     })();
   </script>
-</body>
-</html>
+
+
+</body></html>
