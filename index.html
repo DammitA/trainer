@@ -74,7 +74,17 @@
     .config-scroll{display:grid;gap:13px;transition:opacity .2s ease;opacity:1;}
     .config-header p{margin-top:4px;color:var(--muted);font-size:14px;line-height:1.45;}
     .panel{background:rgba(16,24,39,0.72);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:13px;box-shadow:0 12px 32px rgba(0,0,0,0.28);}
-    .panel h2{color:var(--muted);}
+    .panel.collapsed{padding-bottom:10px;}
+    .panel-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
+    .panel-header.compact{justify-content:space-between;align-items:center;}
+    .panel-header.compact h1{margin:0;font-size:24px;line-height:1.1;}
+    .panel-header h2{margin:0;color:var(--muted);}
+    .panel-header button{padding:7px 11px;border-radius:10px;font-size:14px;line-height:1;white-space:nowrap;min-width:34px;text-align:center;}
+    .panel-body{display:grid;gap:10px;}
+    .panel.collapsed .panel-body{display:none;}
+    .panel.collapsed .panel-header{margin-bottom:0;}
+    .subpanel{background:rgba(16,24,39,0.58);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:12px;display:grid;gap:10px;}
+    .subpanel h3{margin:0;font-size:14px;color:var(--text);}
     #targetsPanel label{margin-top:6px;}
     #targetsPanel .toggles label{margin-top:8px;}
     #targetsPanel .grid label{margin-top:0;}
@@ -217,125 +227,70 @@
   <main class="app">
     <aside id="configPane" class="config-pane">
       <div class="config-scroll">
-        <div class="panel config-header">
-          <h1>Target Training App</h1>
-          <p>Randomize the start cue, follow with a stop cue, and populate a configurable target board for visual drills.</p>
-          <div class="help-launch" id="helpPanel">
-            <button id="helpBtn" class="ghost" type="button">Help</button>
+        <section class="panel" id="titlePanel">
+          <div class="panel-header compact">
+            <h1>Target Training App</h1>
+            <button type="button" class="ghost panel-toggle" data-panel-toggle="titlePanel" aria-expanded="true" aria-label="Collapse panel">-</button>
           </div>
-          <div class="calibrate-launch" id="calibratePanel">
-            <button id="calibrateBtn" class="ghost" type="button">Calibrate Screen</button>
-            <div id="calibrationIndicator" class="calibration-indicator"></div>
-          </div>
-        </div>
-
-        <section class="panel" id="presetPanel">
-          <h2>Presets</h2>
-          <div class="preset-controls">
-            <select id="presetSelect" title="Load a preset"><option value="" selected="selected">Load preset…</option></select>
-            <div class="preset-actions">
-              <button id="savePreset" class="ghost preset-save" type="button">Save Preset</button>
-              <button id="exportPresets" class="ghost preset-secondary" type="button">Export</button>
-              <button id="importPresets" class="ghost preset-secondary" type="button">Import</button>
-              <button id="deletePreset" class="danger preset-secondary" type="button">Delete</button>
-              <input id="importPresetFile" type="file" accept=".csv,text/csv" hidden>
+          <div class="panel-body">
+            <div class="config-header">
+              <p>Dry fire at your screen with this app! Explore the different modes and create your own drills.</p>
+              <div class="help-launch" id="helpPanel">
+                <button id="helpBtn" class="ghost" type="button">Help</button>
+              </div>
+              <div class="calibrate-launch" id="calibratePanel">
+                <button id="calibrateBtn" class="ghost" type="button">Calibrate Screen</button>
+                <div id="calibrationIndicator" class="calibration-indicator"></div>
+              </div>
             </div>
           </div>
-          <p class="note">Presets and the last-used settings stay on this device.</p>
+        </section>
+
+        <section class="panel" id="presetPanel">
+          <div class="panel-header">
+            <h2>Presets</h2>
+            <button type="button" class="ghost panel-toggle" data-panel-toggle="presetPanel" aria-expanded="true" aria-label="Collapse panel">-</button>
+          </div>
+          <div class="panel-body">
+            <div class="preset-controls">
+              <select id="presetSelect" title="Load a preset"><option value="" selected="selected">Load preset…</option></select>
+              <div class="preset-actions">
+                <button id="savePreset" class="ghost preset-save" type="button">Save Preset</button>
+                <button id="exportPresets" class="ghost preset-secondary" type="button">Export</button>
+                <button id="importPresets" class="ghost preset-secondary" type="button">Import</button>
+                <button id="deletePreset" class="danger preset-secondary" type="button">Delete</button>
+                <input id="importPresetFile" type="file" accept=".csv,text/csv" hidden>
+              </div>
+            </div>
+            <p class="note">Your custom presets will be saved in your browser cache, and can be exported.</p>
+          </div>
         </section>
 
         <section class="panel" id="modePanel">
-          <h2>Mode</h2>
-          <div class="grid">
-            <label>Session mode
-              <select id="sessionMode">
-                <option value="board" selected="selected">Timed board</option>
-                <option value="continuous">Continuous flow</option>
-                <option value="swinger">Swinger</option>
-              </select>
-            </label>
+          <div class="panel-header">
+            <h2>Mode</h2>
+            <button type="button" class="ghost panel-toggle" data-panel-toggle="modePanel" aria-expanded="true" aria-label="Collapse panel">-</button>
           </div>
-        </section>
-
-        <section class="panel" id="timerPanel">
-          <h2>Timing &amp; Beeps</h2>
-          <div class="grid two">
-            <label>Timer mode
-              <select id="timerMode">
-                <option value="single" selected="selected">Single Par Time</option>
-                <option value="reload">Reload separated par</option>
-                <option value="shot">Shot Defined Par</option>
-              </select>
-            </label>
-            <label>Random start delay (s)
-              <div class="inline">
-                <input type="number" class="compact-number" id="delayMin" min="0" step="0.1" value="1.0" placeholder="Min">
-                <span style="color:var(--muted);">to</span>
-                <input type="number" class="compact-number" id="delayMax" min="0" step="0.1" value="3.0" placeholder="Max">
-              </div>
-            </label>
-            <label id="workDurationLabel">Time to engage (s)
-              <input type="number" id="workDuration" min="0" step="0.1" value="5.0">
-            </label>
-            <label id="firstShotTimeLabel">First shot time (s)
-              <input type="number" id="firstShotTime" min="0.1" max="3" step="0.01" value="0.75">
-            </label>
-            <label id="shotCountLabel">Shots per string
-              <input type="number" id="shotCount" min="1" max="10" step="1" value="6">
-            </label>
-            <label id="shotSplitLabel">Split time (s)
-              <input type="number" id="shotSplit" min="0.1" max="10" step="0.01" value="0.25">
-            </label>
-            <label id="repeatsLabel">Reloads
-              <input type="number" id="repeats" min="0" step="1" value="0">
-            </label>
-            <label id="shotReloadsLabel">Reloads
-              <input type="number" id="shotReloads" min="0" max="3" step="1" value="0">
-            </label>
-            <label id="reloadTimeLabel">Reload time (s)
-              <input type="number" id="reloadTime" min="0" step="0.1" value="0.0">
-            </label>
-            <label>Start/draw beep frequency (Hz)
-              <input type="number" id="startFreq" min="200" max="4000" step="1" value="950">
-            </label>
-            <label>Start beep length (s)
-              <input type="number" id="startLen" min="0.05" max="1.0" step="0.01" value="0.20">
-            </label>
-            <label>Stop/shot beep frequency (Hz)
-              <input type="number" id="stopFreq" min="200" max="4000" step="1" value="1200">
-            </label>
-            <label>Stop/shot beep length (s)
-              <input type="number" id="stopLen" min="0.05" max="1.5" step="0.01" value="0.25">
-            </label>
-          </div>
-          <div class="actions">
-            <button id="testStart" class="ghost">Test start beep</button>
-            <button id="testStop" class="ghost">Test stop beep</button>
-          </div>
-          <p class="note">Press Space to toggle start/stop even when the menu is hidden.</p>
-          <div class="status-grid">
-            <div class="status-card">
-              <span>Status</span>
-              <strong id="status">Idle</strong>
-            </div>
-            <div class="status-card">
-              <span>Start in</span>
-              <strong id="countStart">—</strong>
-            </div>
-            <div class="status-card">
-              <span>Stop in</span>
-              <strong id="countStop">—</strong>
-            </div>
-            <div class="status-card">
-              <span>Selected delay</span>
-              <strong id="selectedDelay">—</strong>
+          <div class="panel-body">
+            <div class="grid">
+              <label>Session mode
+                <select id="sessionMode">
+                  <option value="board" selected="selected">Timed board</option>
+                  <option value="continuous">Continuous flow</option>
+                  <option value="swinger">Swinger</option>
+                </select>
+              </label>
             </div>
           </div>
         </section>
 
         <section class="panel" id="targetsPanel">
-          <h2>Target board</h2>
-          <div class="grid two">
+          <div class="panel-header">
+            <h2>Targets</h2>
+            <button type="button" class="ghost panel-toggle" data-panel-toggle="targetsPanel" aria-expanded="true" aria-label="Collapse panel">-</button>
+          </div>
+          <div class="panel-body">
+            <div class="grid two">
             <label id="targetCountLabel">Number of targets
               <input type="number" id="targetCount" min="0" max="60" step="1" value="8">
             </label>
@@ -358,118 +313,234 @@
                 <option value="grid">Grid layout</option>
               </select>
             </label>
-          </div>
-          <div class="toggle-grid" id="targetToggleGrid">
-            <button type="button" class="toggle-btn" id="targetNumberedBtn" aria-pressed="true">Number targets</button>
-            <button type="button" class="toggle-btn" id="randomTargetColorsBtn" aria-pressed="false">Cycle bright colors</button>
-            <button type="button" class="toggle-btn" id="darkBoardBtn" aria-pressed="false">Black background</button>
-            <button type="button" class="toggle-btn" id="randomSizesBtn" aria-pressed="false">Randomize size</button>
-            <button type="button" class="toggle-btn" id="hideTargetsBtn" aria-pressed="false">Hide until start beep</button>
-            <button type="button" class="toggle-btn" id="useDistanceScaleBtn" aria-pressed="false">Size by distance</button>
-            <input type="checkbox" id="targetNumbered" checked="checked" hidden>
-            <input type="checkbox" id="randomTargetColors" hidden>
-            <input type="checkbox" id="darkBoard" hidden>
-            <input type="checkbox" id="randomSizes" hidden>
-            <input type="checkbox" id="hideTargets" hidden>
-            <input type="checkbox" id="useDistanceScale" hidden>
-          </div>
-          <div class="size-opts" id="distanceScaleOptions" hidden="">
-            <div class="distance-scale-controls">
-              <label id="screenDistanceLabel">Distance from screen (ft)
-                <input type="number" id="screenDistanceFt" min="0.1" max="50" step="0.1" value="2">
+            </div>
+            <div class="toggle-grid" id="targetToggleGrid">
+              <button type="button" class="toggle-btn" id="targetNumberedBtn" aria-pressed="true">Number targets</button>
+              <button type="button" class="toggle-btn" id="randomTargetColorsBtn" aria-pressed="false">Cycle bright colors</button>
+              <button type="button" class="toggle-btn" id="darkBoardBtn" aria-pressed="false">Black background</button>
+              <button type="button" class="toggle-btn" id="randomSizesBtn" aria-pressed="false">Randomize size</button>
+              <button type="button" class="toggle-btn" id="hideTargetsBtn" aria-pressed="false">Hide until start beep</button>
+              <button type="button" class="toggle-btn" id="useDistanceScaleBtn" aria-pressed="false">Size by distance</button>
+              <input type="checkbox" id="targetNumbered" checked="checked" hidden>
+              <input type="checkbox" id="randomTargetColors" hidden>
+              <input type="checkbox" id="darkBoard" hidden>
+              <input type="checkbox" id="randomSizes" hidden>
+              <input type="checkbox" id="hideTargets" hidden>
+              <input type="checkbox" id="useDistanceScale" hidden>
+            </div>
+            <div class="size-opts" id="distanceScaleOptions" hidden="">
+              <div class="distance-scale-controls">
+                <label id="screenDistanceLabel">Distance from screen (ft)
+                  <input type="number" id="screenDistanceFt" min="0.1" max="50" step="0.1" value="2">
+                </label>
+                <label id="targetDistanceLabel">Desired target distance (yd)
+                  <input type="number" id="targetDistanceYd" min="0.1" max="1000" step="0.1" value="10">
+                </label>
+                <div class="distance-summary" id="distanceScaleSummary"></div>
+              </div>
+            </div>
+            <div class="size-opts" id="gridOptions" hidden="">
+              <label id="gridRowsLabel">Rows
+                <input type="number" id="gridRows" min="1" max="8" step="1" value="">
               </label>
-              <label id="targetDistanceLabel">Desired target distance (yd)
-                <input type="number" id="targetDistanceYd" min="0.1" max="1000" step="0.1" value="10">
+              <label id="gridColsLabel">Columns
+                <input type="number" id="gridCols" min="1" max="8" step="1" value="">
               </label>
-              <div class="distance-summary" id="distanceScaleSummary"></div>
+              <label>Grid spread (%)
+                <input type="number" id="gridSpread" min="25" max="200" step="5" value="100">
+              </label>
+              <button type="button" class="toggle-btn soft" id="useGridPhysicalSpacingBtn" aria-pressed="false">Space by target distance</button>
+              <input type="checkbox" id="useGridPhysicalSpacing" hidden>
+              <label id="gridSpacingFtLabel">Center spacing (ft)
+                <input type="number" id="gridSpacingFt" min="0.1" max="50" step="0.1" value="2">
+              </label>
+            </div>
+            <div class="size-opts" id="fixedSizeOptions">
+              <label>Target size (px)
+                <input type="number" id="targetSize" min="10" max="320" step="1" value="80">
+              </label>
+            </div>
+            <div class="size-opts" id="randomSizeOptions" hidden="">
+              <label>Min size (px)
+                <input type="number" id="targetSizeMin" min="10" max="320" step="1" value="50">
+              </label>
+              <label>Max size (px)
+                <input type="number" id="targetSizeMax" min="10" max="360" step="1" value="120">
+              </label>
             </div>
           </div>
-          <div class="size-opts" id="gridOptions" hidden="">
-            <label id="gridRowsLabel">Rows
-              <input type="number" id="gridRows" min="1" max="8" step="1" value="">
-            </label>
-            <label id="gridColsLabel">Columns
-              <input type="number" id="gridCols" min="1" max="8" step="1" value="">
-            </label>
-            <label>Grid spread (%)
-              <input type="number" id="gridSpread" min="25" max="200" step="5" value="100">
-            </label>
-            <button type="button" class="toggle-btn soft" id="useGridPhysicalSpacingBtn" aria-pressed="false">Space by target distance</button>
-            <input type="checkbox" id="useGridPhysicalSpacing" hidden>
-            <label id="gridSpacingFtLabel">Center spacing (ft)
-              <input type="number" id="gridSpacingFt" min="0.1" max="50" step="0.1" value="2">
-            </label>
+        </section>
+
+        <section class="panel" id="timerPanel">
+          <div class="panel-header">
+            <h2>Timer</h2>
+            <button type="button" class="ghost panel-toggle" data-panel-toggle="timerPanel" aria-expanded="true" aria-label="Collapse panel">-</button>
           </div>
-          <div class="size-opts" id="fixedSizeOptions">
-            <label>Target size (px)
-              <input type="number" id="targetSize" min="10" max="320" step="1" value="80">
+          <div class="panel-body">
+            <div class="grid two">
+            <label id="timerModeLabel">Timer mode
+              <select id="timerMode">
+                <option value="single" selected="selected">Single Par Time</option>
+                <option value="reload">Reload separated par</option>
+                <option value="shot">Shot Defined Par</option>
+              </select>
             </label>
-          </div>
-          <div class="size-opts" id="randomSizeOptions" hidden="">
-            <label>Min size (px)
-              <input type="number" id="targetSizeMin" min="10" max="320" step="1" value="50">
+            <label>Random start delay (s)
+              <div class="inline">
+                <input type="number" class="compact-number" id="delayMin" min="0" step="0.1" value="1.0" placeholder="Min">
+                <span style="color:var(--muted);">to</span>
+                <input type="number" class="compact-number" id="delayMax" min="0" step="0.1" value="3.0" placeholder="Max">
+              </div>
             </label>
-            <label>Max size (px)
-              <input type="number" id="targetSizeMax" min="10" max="360" step="1" value="120">
+            <div id="flowStopWatchBlock" class="grid two">
+              <label>Stop watch type
+                <select id="flowStopMode">
+                  <option value="time" selected="selected">Seconds</option>
+                  <option value="targets">Targets</option>
+                </select>
+              </label>
+              <label id="flowStopSecondsLabel">Run length (s)
+                <input type="number" id="flowStopSeconds" min="0.1" max="3600" step="0.1" value="10">
+              </label>
+              <label id="flowStopTargetsLabel">Target count
+                <input type="number" id="flowStopTargets" min="1" max="10000" step="1" value="20">
+              </label>
+            </div>
+            <label id="workDurationLabel">Time to engage (s)
+              <input type="number" id="workDuration" min="0" step="0.1" value="5.0">
             </label>
+            <label id="firstShotTimeLabel">First shot time (s)
+              <input type="number" id="firstShotTime" min="0.1" max="3" step="0.01" value="0.75">
+            </label>
+            <label id="shotCountLabel">Shots per string
+              <input type="number" id="shotCount" min="1" max="10" step="1" value="6">
+            </label>
+            <label id="shotSplitLabel">Split time (s)
+              <input type="number" id="shotSplit" min="0.1" max="10" step="0.01" value="0.25">
+            </label>
+            <label id="repeatsLabel">Reloads
+              <input type="number" id="repeats" min="0" step="1" value="0">
+            </label>
+            <label id="shotReloadsLabel">Reloads
+              <input type="number" id="shotReloads" min="0" max="3" step="1" value="0">
+            </label>
+            <label id="reloadTimeLabel">Reload time (s)
+              <input type="number" id="reloadTime" min="0" step="0.1" value="0.0">
+            </label>
+            </div>
+            <div class="status-grid">
+              <div class="status-card">
+                <span>Status</span>
+                <strong id="status">Idle</strong>
+              </div>
+              <div class="status-card">
+                <span>Start in</span>
+                <strong id="countStart">—</strong>
+              </div>
+              <div class="status-card">
+                <span>Stop in</span>
+                <strong id="countStop">—</strong>
+              </div>
+              <div class="status-card">
+                <span>Selected delay</span>
+                <strong id="selectedDelay">—</strong>
+              </div>
+            </div>
           </div>
         </section>
 
         <section class="panel" id="continuousPanel" hidden="">
-          <h2>Continuous flow</h2>
-          <div class="grid two">
-            <label>Spawn source
-              <select id="flowEdge">
-                <option value="left" selected="selected">Left to right</option>
-                <option value="right">Right to left</option>
-                <option value="top">Top to bottom</option>
-                <option value="bottom">Bottom to top</option>
-                <option value="border">Around border</option>
-              </select>
-            </label>
-            <label>Start positions
-              <select id="flowPlacement">
-                <option value="random" selected="selected">Random along edge</option>
-                <option value="ordered">Ordered sequence</option>
-              </select>
-            </label>
-            <button type="button" class="toggle-btn soft" id="flowAlternateBtn" aria-pressed="false">Alternate opposite edge</button>
-            <input type="checkbox" id="flowAlternate" hidden>
-            <label>Flow speed (px/s)
-              <input type="number" id="flowSpeed" min="10" max="3000" step="10" value="280">
-            </label>
-            <label>Creation rate (targets/s)
-              <input type="number" id="flowRate" min="0.1" max="20" step="0.1" value="1.5">
-            </label>
+          <div class="panel-header">
+            <h2>Continuous Flow</h2>
+            <button type="button" class="ghost panel-toggle" data-panel-toggle="continuousPanel" aria-expanded="true" aria-label="Collapse panel">-</button>
           </div>
-          <p class="note">Continuous mode spawns targets from one edge 
-or around the full border and moves them across the board until you 
-press Stop. Enable alternating to swap between the selected edge and its
- opposite on each spawn.</p>
+          <div class="panel-body">
+            <div class="grid two">
+              <label>Spawn source
+                <select id="flowEdge">
+                  <option value="left" selected="selected">Left to right</option>
+                  <option value="right">Right to left</option>
+                  <option value="top">Top to bottom</option>
+                  <option value="bottom">Bottom to top</option>
+                  <option value="border">Around border</option>
+                </select>
+              </label>
+              <label>Start positions
+                <select id="flowPlacement">
+                  <option value="random" selected="selected">Random along edge</option>
+                  <option value="ordered">Ordered sequence</option>
+                </select>
+              </label>
+              <button type="button" class="toggle-btn soft" id="flowAlternateBtn" aria-pressed="false">Alternate opposite edge</button>
+              <input type="checkbox" id="flowAlternate" hidden>
+              <button type="button" class="toggle-btn soft" id="flowBypassStopwatchBtn" aria-pressed="false">Bypass stopwatch</button>
+              <input type="checkbox" id="flowBypassStopwatch" hidden>
+              <label>Flow speed (px/s)
+                <input type="number" id="flowSpeed" min="10" max="3000" step="10" value="280">
+              </label>
+              <label>Creation rate (targets/s)
+                <input type="number" id="flowRate" min="0.1" max="20" step="0.1" value="1.5">
+              </label>
+            </div>
+          </div>
         </section>
 
         <section class="panel" id="swingerPanel" hidden="">
-          <h2>Swinger</h2>
-          <div class="grid two">
-            <label>Swing rate (deg/s)
-              <input type="number" id="swingRate" min="1" max="720" step="1" value="180">
-            </label>
-            <label>Target height (px)
-              <input type="number" id="swingTargetHeight" min="10" max="2000" step="1" value="300">
-            </label>
-            <label>Axis height (px)
-              <input type="number" id="swingAxisHeight" min="0" max="2000" step="1" value="80">
-            </label>
+          <div class="panel-header">
+            <h2>Swinger</h2>
+            <button type="button" class="ghost panel-toggle" data-panel-toggle="swingerPanel" aria-expanded="true" aria-label="Collapse panel">-</button>
           </div>
-          <div class="size-opts" id="swingPhysicalOptions">
-            <button type="button" class="toggle-btn soft" id="useSwingPhysicalDimensionsBtn" aria-pressed="false">Swing dimensions by target distance</button>
-            <input type="checkbox" id="useSwingPhysicalDimensions" hidden>
-            <label id="swingTargetHeightFtLabel">Target height (ft perceived)
-              <input type="number" id="swingTargetHeightFt" min="0.1" max="50" step="0.1" value="2">
-            </label>
-            <label id="swingAxisHeightFtLabel">Axis height (ft perceived)
-              <input type="number" id="swingAxisHeightFt" min="0" max="50" step="0.1" value="0.5">
-            </label>
+          <div class="panel-body">
+            <div class="grid two">
+              <label>Swing rate (deg/s)
+                <input type="number" id="swingRate" min="1" max="720" step="1" value="180">
+              </label>
+              <label>Target height (px)
+                <input type="number" id="swingTargetHeight" min="10" max="2000" step="1" value="300">
+              </label>
+              <label>Axis height (px)
+                <input type="number" id="swingAxisHeight" min="0" max="2000" step="1" value="80">
+              </label>
+            </div>
+            <div class="size-opts" id="swingPhysicalOptions">
+              <button type="button" class="toggle-btn soft" id="useSwingPhysicalDimensionsBtn" aria-pressed="false">Swing dimensions by target distance</button>
+              <input type="checkbox" id="useSwingPhysicalDimensions" hidden>
+              <label id="swingTargetHeightFtLabel">Target height (ft perceived)
+                <input type="number" id="swingTargetHeightFt" min="0.1" max="50" step="0.1" value="2">
+              </label>
+              <label id="swingAxisHeightFtLabel">Axis height (ft perceived)
+                <input type="number" id="swingAxisHeightFt" min="0" max="50" step="0.1" value="0.5">
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="beepPanel">
+          <div class="panel-header">
+            <h2>Beep Tone</h2>
+            <button type="button" class="ghost panel-toggle" data-panel-toggle="beepPanel" aria-expanded="true" aria-label="Collapse panel">-</button>
+          </div>
+          <div class="panel-body">
+            <div class="subpanel">
+              <div class="grid two">
+                <label>Start/draw beep frequency (Hz)
+                  <input type="number" id="startFreq" min="200" max="4000" step="1" value="950">
+                </label>
+                <label>Start beep length (s)
+                  <input type="number" id="startLen" min="0.05" max="1.0" step="0.01" value="0.20">
+                </label>
+                <label>Stop/shot beep frequency (Hz)
+                  <input type="number" id="stopFreq" min="200" max="4000" step="1" value="1200">
+                </label>
+                <label>Stop/shot beep length (s)
+                  <input type="number" id="stopLen" min="0.05" max="1.5" step="0.01" value="0.25">
+                </label>
+              </div>
+              <div class="actions">
+                <button id="testStart" class="ghost">Test start beep</button>
+                <button id="testStop" class="ghost">Test stop beep</button>
+              </div>
+            </div>
           </div>
         </section>
       </div>
@@ -503,8 +574,8 @@ press Stop. Enable alternating to swap between the selected edge and its
       <div class="flow-diagram">
         <article class="flow-column">
           <h3>Timed Board</h3>
-          <div class="flow-node"><strong>Timer mode</strong><span>Single par, reload-separated par, or shot-defined par controls the beep sequence.</span></div>
-          <div class="flow-node"><strong>Target board</strong><ul><li>Number of targets</li><li>Target shape</li><li>Random or grid layout</li><li>Optional numbered targets</li></ul></div>
+          <div class="flow-node"><strong>Timer mode</strong><span>There are 3 different par timer modes: single par, reload-separated par, or shot-defined par.</span></div>
+          <div class="flow-node"><strong>Targets</strong><ul><li>Number of targets</li><li>Target shape</li><li>Random or grid layout</li><li>Optional numbered targets</li></ul></div>
           <div class="flow-node"><strong>Presentation</strong><ul><li>Random start delay arms the run</li><li>Hide until start beep can conceal targets</li><li>Start/stop or shot beeps drive the drill</li></ul></div>
         </article>
 
@@ -512,7 +583,7 @@ press Stop. Enable alternating to swap between the selected edge and its
           <h3>Continuous Flow</h3>
           <div class="flow-node"><strong>Motion source</strong><span>Choose an edge, opposite-edge alternation, or border spawning.</span></div>
           <div class="flow-node"><strong>Target stream</strong><ul><li>Flow speed sets travel rate</li><li>Creation rate sets target density</li><li>Random size and bright colors affect each spawned target</li></ul></div>
-          <div class="flow-node"><strong>Run behavior</strong><span>Targets keep spawning and crossing the board until Stop or Space is pressed.</span></div>
+          <div class="flow-node"><strong>Run behavior</strong><span>The run starts on the start beep. Use the stopwatch for timed or target-limited runs, or bypass it to keep targets flowing until you press Stop or Space.</span></div>
         </article>
 
         <article class="flow-column">
@@ -571,13 +642,15 @@ press Stop. Enable alternating to swap between the selected edge and its
         targetBoard: $('targetBoard'),
         targetLayout: $('targetLayout'), gridRows: $('gridRows'), gridCols: $('gridCols'), gridRowsLabel: $('gridRowsLabel'), gridColsLabel: $('gridColsLabel'), gridSpread: $('gridSpread'), useGridPhysicalSpacing: $('useGridPhysicalSpacing'), gridSpacingFt: $('gridSpacingFt'), hideTargets: $('hideTargets'),
         toggleMenu: $('toggleMenu'), configPane: $('configPane'),
-        timerPanel: $('timerPanel'), continuousPanel: $('continuousPanel'), swingerPanel: $('swingerPanel'),
+        modePanel: $('modePanel'), targetsPanel: $('targetsPanel'), timerPanel: $('timerPanel'), timerModeLabel: $('timerModeLabel'), continuousPanel: $('continuousPanel'), swingerPanel: $('swingerPanel'), beepPanel: $('beepPanel'),
         workDurationLabel: $('workDurationLabel'), repeatsLabel: $('repeatsLabel'), reloadTimeLabel: $('reloadTimeLabel'),
         shotCountLabel: $('shotCountLabel'), shotSplitLabel: $('shotSplitLabel'), firstShotTimeLabel: $('firstShotTimeLabel'), shotReloadsLabel: $('shotReloadsLabel'),
         targetCountLabel: $('targetCountLabel'), targetColorLabel: $('targetColorLabel'), targetLayoutLabel: $('targetLayoutLabel'),
         targetNumberedBtn: $('targetNumberedBtn'), randomTargetColorsBtn: $('randomTargetColorsBtn'), darkBoardBtn: $('darkBoardBtn'), randomSizesBtn: $('randomSizesBtn'), hideTargetsBtn: $('hideTargetsBtn'),
         distanceScaleOptions: $('distanceScaleOptions'), useDistanceScaleBtn: $('useDistanceScaleBtn'), screenDistanceLabel: $('screenDistanceLabel'), targetDistanceLabel: $('targetDistanceLabel'), distanceScaleSummary: $('distanceScaleSummary'), useGridPhysicalSpacingBtn: $('useGridPhysicalSpacingBtn'), gridSpacingFtLabel: $('gridSpacingFtLabel'),
         flowEdge: $('flowEdge'), flowPlacement: $('flowPlacement'), flowAlternate: $('flowAlternate'), flowAlternateBtn: $('flowAlternateBtn'), flowSpeed: $('flowSpeed'), flowRate: $('flowRate'),
+        flowBypassStopwatch: $('flowBypassStopwatch'), flowBypassStopwatchBtn: $('flowBypassStopwatchBtn'),
+        flowStopWatchBlock: $('flowStopWatchBlock'), flowStopMode: $('flowStopMode'), flowStopSeconds: $('flowStopSeconds'), flowStopTargets: $('flowStopTargets'), flowStopSecondsLabel: $('flowStopSecondsLabel'), flowStopTargetsLabel: $('flowStopTargetsLabel'),
         swingRate: $('swingRate'), swingTargetHeight: $('swingTargetHeight'), swingAxisHeight: $('swingAxisHeight'), useSwingPhysicalDimensions: $('useSwingPhysicalDimensions'), swingTargetHeightFt: $('swingTargetHeightFt'), swingAxisHeightFt: $('swingAxisHeightFt'), useSwingPhysicalDimensionsBtn: $('useSwingPhysicalDimensionsBtn'), swingTargetHeightFtLabel: $('swingTargetHeightFtLabel'), swingAxisHeightFtLabel: $('swingAxisHeightFtLabel'),
         presetSelect: $('presetSelect'), savePreset: $('savePreset'), deletePreset: $('deletePreset'), exportPresets: $('exportPresets'), importPresets: $('importPresets'), importPresetFile: $('importPresetFile'),
         helpBtn: $('helpBtn'), helpOverlay: $('helpOverlay'), helpClose: $('helpClose'),
@@ -591,6 +664,7 @@ press Stop. Enable alternating to swap between the selected edge and its
       var timers = [];
       var rafId = 0;
       var plan = null;
+      var continuousPlan = null;
       var awaitingReveal = false;
       var continuousState = null;
       var continuousRafId = 0;
@@ -604,6 +678,7 @@ press Stop. Enable alternating to swap between the selected edge and its
       var CALIBRATION_MAX_PX = 800;
 
       var STORAGE_KEY = 'targetTrainer_settings_v1';
+      var BEEP_KEY = 'targetTrainer_beepSettings_v1';
       var PRESET_KEY = 'targetTrainer_presets_v1';
       var PRESET_DELETED_KEY = 'targetTrainer_deletedDefaultPresets_v1';
       var CALIBRATION_KEY = 'targetTrainer_screenCalibration_v1';
@@ -619,10 +694,9 @@ press Stop. Enable alternating to swap between the selected edge and its
         shotSplit: 0.25,
         firstShotTime: 0.75,
         shotReloads: 0,
-        startFreq: 950,
-        startLen: 0.2,
-        stopFreq: 1200,
-        stopLen: 0.25,
+        flowStopMode: 'time',
+        flowStopSeconds: 10,
+        flowStopTargets: 20,
         targetCount: 8,
         targetShape: 'circle',
         targetColor: '#d62828',
@@ -646,6 +720,7 @@ press Stop. Enable alternating to swap between the selected edge and its
         flowEdge: 'left',
         flowPlacement: 'random',
         flowAlternate: false,
+        flowBypassStopwatch: false,
         flowSpeed: 280,
         flowRate: 1.5,
         swingRate: 180,
@@ -656,6 +731,13 @@ press Stop. Enable alternating to swap between the selected edge and its
         swingAxisHeightFt: 0.5
       };
       var SETTINGS_FIELDS = Object.keys(SETTINGS_DEFAULTS);
+      var BEEP_DEFAULTS = {
+        startFreq: 950,
+        startLen: 0.2,
+        stopFreq: 1200,
+        stopLen: 0.25
+      };
+      var BEEP_FIELDS = Object.keys(BEEP_DEFAULTS);
       var DEFAULT_PRESETS = {
         'Classic Bowling Pins': {
           sessionMode: 'board',
@@ -665,10 +747,9 @@ press Stop. Enable alternating to swap between the selected edge and its
           workDuration: 6,
           repeats: 0,
           reloadTime: 0,
-          startFreq: 950,
-          startLen: 0.2,
-          stopFreq: 1200,
-          stopLen: 0.25,
+          flowStopMode: 'time',
+          flowStopSeconds: 10,
+          flowStopTargets: 20,
           targetCount: 6,
           targetShape: 'bowling-pin',
           targetColor: '#d62828',
@@ -689,6 +770,7 @@ press Stop. Enable alternating to swap between the selected edge and its
           flowEdge: 'left',
           flowPlacement: 'random',
           flowAlternate: false,
+          flowBypassStopwatch: false,
           flowSpeed: 280,
           flowRate: 1.5,
           swingRate: 180,
@@ -706,10 +788,9 @@ press Stop. Enable alternating to swap between the selected edge and its
           workDuration: 5,
           repeats: 0,
           reloadTime: 0,
-          startFreq: 950,
-          startLen: 0.2,
-          stopFreq: 1200,
-          stopLen: 0.25,
+          flowStopMode: 'time',
+          flowStopSeconds: 10,
+          flowStopTargets: 20,
           targetCount: 8,
           targetShape: 'uspsa',
           targetColor: '#d62828',
@@ -730,6 +811,7 @@ press Stop. Enable alternating to swap between the selected edge and its
           flowEdge: 'left',
           flowPlacement: 'random',
           flowAlternate: false,
+          flowBypassStopwatch: false,
           flowSpeed: 280,
           flowRate: 1.5,
           swingRate: 180,
@@ -747,10 +829,9 @@ press Stop. Enable alternating to swap between the selected edge and its
           workDuration: 5,
           repeats: 0,
           reloadTime: 0,
-          startFreq: 950,
-          startLen: 0.2,
-          stopFreq: 1200,
-          stopLen: 0.25,
+          flowStopMode: 'time',
+          flowStopSeconds: 10,
+          flowStopTargets: 20,
           targetCount: 8,
           targetShape: 'circle',
           targetColor: '#d62828',
@@ -771,6 +852,7 @@ press Stop. Enable alternating to swap between the selected edge and its
           flowEdge: 'top',
           flowPlacement: 'random',
           flowAlternate: false,
+          flowBypassStopwatch: false,
           flowSpeed: 300,
           flowRate: 1.5,
           swingRate: 180,
@@ -797,6 +879,29 @@ press Stop. Enable alternating to swap between the selected edge and its
 
       function loadSettings(){ return readStore(STORAGE_KEY) || {}; }
       function saveSettings(data){ writeStore(STORAGE_KEY, data || {}); }
+      function saveBeepSettings(data){ writeStore(BEEP_KEY, data || {}); }
+      function normalizeBeepSettings(state){
+        var normalized = {};
+        state = (state && typeof state === 'object') ? state : {};
+        BEEP_FIELDS.forEach(function(key){
+          normalized[key] = state[key] !== undefined ? state[key] : BEEP_DEFAULTS[key];
+        });
+        return normalized;
+      }
+      function loadBeepSettings(fallback){
+        var stored = readStore(BEEP_KEY);
+        if(stored && typeof stored === 'object'){
+          return normalizeBeepSettings(stored);
+        }
+        var source = (fallback && typeof fallback === 'object') ? fallback : loadSettings();
+        var legacy = {};
+        BEEP_FIELDS.forEach(function(key){
+          if(source[key] !== undefined){ legacy[key] = source[key]; }
+        });
+        var normalized = normalizeBeepSettings(legacy);
+        saveBeepSettings(normalized);
+        return normalized;
+      }
       function loadDeletedPresetStore(){ return readStore(PRESET_DELETED_KEY) || {}; }
       function saveDeletedPresetStore(data){ writeStore(PRESET_DELETED_KEY, data || {}); }
       function loadPresetStore(){ return withDefaultPresets(readStore(PRESET_KEY) || {}); }
@@ -839,6 +944,15 @@ press Stop. Enable alternating to swap between the selected edge and its
           normalized[key] = state[key] !== undefined ? state[key] : SETTINGS_DEFAULTS[key];
         });
         return normalized;
+      }
+
+      function currentBeepSettings(){
+        return normalizeBeepSettings({
+          startFreq: parseFloat(els.startFreq.value) || 0,
+          startLen: parseFloat(els.startLen.value) || 0,
+          stopFreq: parseFloat(els.stopFreq.value) || 0,
+          stopLen: parseFloat(els.stopLen.value) || 0
+        });
       }
 
       async function ensureAudio(){
@@ -941,6 +1055,36 @@ press Stop. Enable alternating to swap between the selected edge and its
         if(onText || offText){ button.title = active ? (onText || '') : (offText || ''); }
       }
 
+      function syncPanelToggleButton(button){
+        if(!button) return;
+        var panelId = button.getAttribute('data-panel-toggle');
+        var panel = panelId ? $(panelId) : null;
+        var collapsed = !!(panel && panel.classList.contains('collapsed'));
+        button.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        button.setAttribute('aria-label', collapsed ? 'Expand panel' : 'Collapse panel');
+        button.textContent = collapsed ? '+' : '-';
+      }
+
+      function setPanelCollapsed(panel, collapsed){
+        if(!panel) return;
+        panel.classList.toggle('collapsed', !!collapsed);
+        var button = panel.querySelector('[data-panel-toggle="' + panel.id + '"]');
+        syncPanelToggleButton(button);
+      }
+
+      function bindPanelToggles(){
+        var buttons = document.querySelectorAll('[data-panel-toggle]');
+        buttons.forEach(function(button){
+          syncPanelToggleButton(button);
+          button.addEventListener('click', function(){
+            var panelId = button.getAttribute('data-panel-toggle');
+            var panel = panelId ? $(panelId) : null;
+            if(!panel) return;
+            setPanelCollapsed(panel, !panel.classList.contains('collapsed'));
+          });
+        });
+      }
+
       function syncTargetBoardToggleButtons(){
         syncToggleButton(els.targetNumberedBtn, els.targetNumbered, 'Number targets', 'Number targets');
         syncToggleButton(els.randomTargetColorsBtn, els.randomTargetColors, 'Cycle bright colors', 'Cycle bright colors');
@@ -954,6 +1098,7 @@ press Stop. Enable alternating to swap between the selected edge and its
         syncTargetBoardToggleButtons();
         syncToggleButton(els.useGridPhysicalSpacingBtn, els.useGridPhysicalSpacing, 'Space by target distance', 'Space by target distance');
         syncToggleButton(els.flowAlternateBtn, els.flowAlternate, 'Alternate opposite edge', 'Alternate opposite edge');
+        syncToggleButton(els.flowBypassStopwatchBtn, els.flowBypassStopwatch, 'Bypass stopwatch', 'Bypass stopwatch');
         syncToggleButton(els.useSwingPhysicalDimensionsBtn, els.useSwingPhysicalDimensions, 'Swing dimensions by target distance', 'Swing dimensions by target distance');
       }
 
@@ -968,7 +1113,7 @@ press Stop. Enable alternating to swap between the selected edge and its
 
       async function startRun(){
         if(isContinuousMode()){
-          startContinuousRun();
+          await startContinuousRun();
           return;
         }
         if(isSwingerMode()){
@@ -998,6 +1143,49 @@ press Stop. Enable alternating to swap between the selected edge and its
         if(isNaN(maxDelay)) maxDelay = minDelay;
         if(maxDelay < minDelay){ var tmp = minDelay; minDelay = maxDelay; maxDelay = tmp; }
         return minDelay + Math.random() * (maxDelay - minDelay);
+      }
+
+      function getContinuousStopMode(){
+        return els.flowStopMode && els.flowStopMode.value ? els.flowStopMode.value : 'time';
+      }
+
+      function isContinuousStopByTargets(){
+        return getContinuousStopMode() === 'targets';
+      }
+
+      function getContinuousStopValue(){
+        if(els.flowBypassStopwatch && els.flowBypassStopwatch.checked){
+          return 0;
+        }
+        if(isContinuousStopByTargets()){
+          return Math.max(1, Math.floor(parseFloat(els.flowStopTargets && els.flowStopTargets.value) || 0));
+        }
+        return Math.max(0.1, parseFloat(els.flowStopSeconds && els.flowStopSeconds.value) || 0);
+      }
+
+      function updateContinuousStopWatchUI(){
+        var bypass = !!(els.flowBypassStopwatch && els.flowBypassStopwatch.checked);
+        var targets = isContinuousStopByTargets();
+        if(els.flowStopWatchBlock){ els.flowStopWatchBlock.hidden = !isContinuousMode() || bypass; }
+        if(els.flowStopSecondsLabel){ els.flowStopSecondsLabel.hidden = bypass || targets; }
+        if(els.flowStopTargetsLabel){ els.flowStopTargetsLabel.hidden = bypass || !targets; }
+      }
+
+      function updatePanelOrder(){
+        if(!els.targetsPanel) return;
+        var parent = els.targetsPanel.parentNode;
+        if(!parent) return;
+        var order;
+        if(isContinuousMode()){
+          order = [els.modePanel, els.continuousPanel, els.targetsPanel, els.timerPanel, els.swingerPanel, els.beepPanel];
+        } else if(isSwingerMode()){
+          order = [els.modePanel, els.swingerPanel, els.targetsPanel, els.timerPanel, els.continuousPanel, els.beepPanel];
+        } else {
+          order = [els.modePanel, els.targetsPanel, els.timerPanel, els.continuousPanel, els.swingerPanel, els.beepPanel];
+        }
+        order.forEach(function(panel){
+          if(panel && panel.parentNode === parent){ parent.appendChild(panel); }
+        });
       }
 
       function buildShotDefinedTimeline(){
@@ -1181,7 +1369,7 @@ press Stop. Enable alternating to swap between the selected edge and its
       }
 
       function isRunActive(){
-        return !!(plan || repeatState || continuousState || swingerState);
+        return !!(plan || repeatState || swingerState || (continuousPlan && continuousPlan.active));
       }
 
       function stopRun(skipStatus){
@@ -1194,6 +1382,7 @@ press Stop. Enable alternating to swap between the selected edge and its
         stopSwingerRun(true);
         if((plan || hadContinuous || hadSwinger) && !skipStatus){ setStatus('Stopped'); }
         plan = null;
+        continuousPlan = null;
         els.startBtn.disabled = false;
         els.stopBtn.disabled = true;
         if(!skipStatus){ els.selectedDelay.textContent = '—'; }
@@ -1208,6 +1397,19 @@ press Stop. Enable alternating to swap between the selected edge and its
           var toStop = Math.max(0, plan.stopAt - now) / 1000;
           els.countStart.textContent = toStart > 0 ? formatSeconds(toStart) : '0.00 s';
           els.countStop.textContent = toStop > 0 ? formatSeconds(toStop) : '0.00 s';
+        } else if(continuousPlan && continuousPlan.active){
+          var nowFlow = performance.now();
+          var toFlowStart = Math.max(0, continuousPlan.startAt - nowFlow) / 1000;
+          els.countStart.textContent = toFlowStart > 0 ? formatSeconds(toFlowStart) : '0.00 s';
+          if(continuousPlan.stopMode === 'time' && continuousPlan.stopAt && !continuousPlan.bypassStopwatch){
+            var toFlowStop = Math.max(0, continuousPlan.stopAt - nowFlow) / 1000;
+            els.countStop.textContent = toFlowStop > 0 ? formatSeconds(toFlowStop) : '0.00 s';
+          } else if(continuousState && continuousPlan.stopMode === 'targets' && !continuousPlan.bypassStopwatch){
+            var remaining = Math.max(0, (continuousState.stopTargetCount || 0) - (continuousState.spawnIndex || 0));
+            els.countStop.textContent = remaining + (remaining === 1 ? ' target' : ' targets');
+          } else {
+            els.countStop.textContent = '—';
+          }
         } else if(continuousState){
           els.countStart.textContent = '—';
           els.countStop.textContent = '—';
@@ -1303,7 +1505,7 @@ press Stop. Enable alternating to swap between the selected edge and its
         var motionMode = continuous || swinger;
         var shape = getSelectedTargetShape();
         var plainColorShape = shape === 'circle' || shape === 'square';
-        if(els.timerPanel){ els.timerPanel.hidden = motionMode; }
+        if(els.timerPanel){ els.timerPanel.hidden = swinger; }
         if(els.continuousPanel){ els.continuousPanel.hidden = !continuous; }
         if(els.swingerPanel){ els.swingerPanel.hidden = !swinger; }
         if(els.targetCountLabel){ els.targetCountLabel.hidden = motionMode; }
@@ -1314,6 +1516,8 @@ press Stop. Enable alternating to swap between the selected edge and its
         if(els.targetNumberedBtn){ els.targetNumberedBtn.hidden = swinger; }
         if(els.randomSizesBtn){ els.randomSizesBtn.hidden = swinger; }
         if(els.darkBoardBtn){ els.darkBoardBtn.hidden = false; }
+        updatePanelOrder();
+        updateContinuousStopWatchUI();
         updateTimerModeUI(motionMode);
         toggleSizeInputs();
         syncAllToggleButtons();
@@ -1330,14 +1534,16 @@ press Stop. Enable alternating to swap between the selected edge and its
         var single = mode === 'single';
         var reload = mode === 'reload';
         var shot = mode === 'shot';
-        var hideAll = !!motionMode;
-        if(els.workDurationLabel){ els.workDurationLabel.hidden = hideAll || shot; }
-        if(els.repeatsLabel){ els.repeatsLabel.hidden = hideAll || !reload; }
-        if(els.reloadTimeLabel){ els.reloadTimeLabel.hidden = hideAll || single; }
-        if(els.shotCountLabel){ els.shotCountLabel.hidden = hideAll || !shot; }
-        if(els.shotSplitLabel){ els.shotSplitLabel.hidden = hideAll || !shot; }
-        if(els.firstShotTimeLabel){ els.firstShotTimeLabel.hidden = hideAll || !shot; }
-        if(els.shotReloadsLabel){ els.shotReloadsLabel.hidden = hideAll || !shot; }
+        var continuous = isContinuousMode();
+        var hideAll = !!motionMode && !continuous;
+        if(els.timerModeLabel){ els.timerModeLabel.hidden = continuous || hideAll; }
+        if(els.workDurationLabel){ els.workDurationLabel.hidden = hideAll || continuous || shot; }
+        if(els.repeatsLabel){ els.repeatsLabel.hidden = hideAll || continuous || !reload; }
+        if(els.reloadTimeLabel){ els.reloadTimeLabel.hidden = hideAll || continuous || single; }
+        if(els.shotCountLabel){ els.shotCountLabel.hidden = hideAll || continuous || !shot; }
+        if(els.shotSplitLabel){ els.shotSplitLabel.hidden = hideAll || continuous || !shot; }
+        if(els.firstShotTimeLabel){ els.firstShotTimeLabel.hidden = hideAll || continuous || !shot; }
+        if(els.shotReloadsLabel){ els.shotReloadsLabel.hidden = hideAll || continuous || !shot; }
       }
 
       function renderTargets(){
@@ -1811,6 +2017,10 @@ press Stop. Enable alternating to swap between the selected edge and its
         continuousState.nextLabel += 1;
         var el = createTargetElement(els.targetBoard, label, size, x, y, shape, resolveTargetColor(continuousState.spawnIndex - 1), numbered);
         continuousState.targets.push({ el: el, x: x, y: y, vx: vx, vy: vy, width: dims.width, height: dims.height });
+
+        if(continuousState.spawningActive && continuousState.stopMode === 'targets' && continuousState.spawnIndex >= continuousState.stopTargetCount){
+          completeContinuousSpawning();
+        }
       }
 
       function stepContinuousTargets(now){
@@ -1822,11 +2032,16 @@ press Stop. Enable alternating to swap between the selected edge and its
         var dt = Math.max(0, (now - continuousState.lastFrame) / 1000);
         continuousState.lastFrame = now;
         var metrics = getContinuousBoardMetrics();
-        var rate = Math.max(0.1, parseFloat(els.flowRate.value) || 0);
-        continuousState.spawnAccumulator += dt * rate;
-        while(continuousState.spawnAccumulator >= 1){
-          createContinuousTarget();
-          continuousState.spawnAccumulator -= 1;
+        if(continuousState.spawningActive){
+          var rate = Math.max(0.1, parseFloat(els.flowRate.value) || 0);
+          continuousState.spawnAccumulator += dt * rate;
+          while(continuousState.spawningActive && continuousState.spawnAccumulator >= 1){
+            createContinuousTarget();
+            continuousState.spawnAccumulator -= 1;
+          }
+          if(continuousState.spawningActive && continuousState.stopMode === 'time' && continuousPlan && continuousPlan.active && performance.now() >= continuousPlan.stopAt){
+            completeContinuousSpawning();
+          }
         }
 
         var survivors = [];
@@ -1849,6 +2064,15 @@ press Stop. Enable alternating to swap between the selected edge and its
           survivors.push(target);
         }
         continuousState.targets = survivors;
+
+        if(!continuousState.spawningActive && continuousState.targets.length === 0){
+          continuousState = null;
+          if(continuousRafId){
+            window.cancelAnimationFrame(continuousRafId);
+            continuousRafId = 0;
+          }
+          return;
+        }
         continuousRafId = window.requestAnimationFrame(stepContinuousTargets);
       }
 
@@ -1932,24 +2156,87 @@ press Stop. Enable alternating to swap between the selected edge and its
         swingerState = null;
       }
 
-      function startContinuousRun(){
+      function completeContinuousSpawning(){
+        if(!continuousPlan || !continuousPlan.active || !continuousState){ return; }
+        if(continuousPlan.bypassStopwatch){ return; }
+        if(continuousPlan.stopCuePlayed){ return; }
+        continuousPlan.stopCuePlayed = true;
+        continuousPlan.active = false;
+        continuousState.spawningActive = false;
+        try{
+          beepNow(Math.max(50, parseFloat(els.stopFreq.value) || 0), Math.max(0.05, parseFloat(els.stopLen.value) || 0.1));
+        }catch(e){}
+        els.startBtn.disabled = false;
+        els.stopBtn.disabled = true;
+        els.selectedDelay.textContent = '—';
+        setStatus('Completed');
+      }
+
+      async function startContinuousRun(){
         stopRun(true);
+        els.startBtn.disabled = true;
+        els.stopBtn.disabled = false;
+        await ensureAudio();
         renderTargets();
+        var delay = readRandomStartDelay();
+        var bypassStopwatch = !!(els.flowBypassStopwatch && els.flowBypassStopwatch.checked);
+        var stopMode = bypassStopwatch ? 'manual' : getContinuousStopMode();
+        var stopValue = bypassStopwatch ? 0 : getContinuousStopValue();
+        var startFrequency = Math.max(50, parseFloat(els.startFreq.value) || 0);
+        var startLength = Math.max(0.05, parseFloat(els.startLen.value) || 0.1);
+        var cueFrequency = Math.max(50, parseFloat(els.stopFreq.value) || 0);
+        var cueLength = Math.max(0.05, parseFloat(els.stopLen.value) || 0.1);
+        var now = performance.now();
+        continuousPlan = {
+          active: true,
+          startAt: now + delay * 1000,
+          stopAt: stopMode === 'time' ? now + (delay + stopValue) * 1000 : null,
+          delay: delay,
+          stopMode: stopMode,
+          stopValue: stopValue,
+          bypassStopwatch: bypassStopwatch,
+          startFreq: startFrequency,
+          startLen: startLength,
+          stopFreq: cueFrequency,
+          stopLen: cueLength,
+          stopCuePlayed: false
+        };
         continuousState = {
           running: true,
           lastFrame: 0,
-          spawnAccumulator: 1,
+          spawnAccumulator: 0,
           spawnIndex: 0,
           nextLabel: 1,
-          targets: []
+          targets: [],
+          spawningActive: false,
+          stopMode: stopMode,
+          bypassStopwatch: bypassStopwatch,
+          stopTargetCount: stopMode === 'targets' ? stopValue : 0
         };
-        els.startBtn.disabled = true;
-        els.stopBtn.disabled = false;
-        els.selectedDelay.textContent = '—';
+        els.selectedDelay.textContent = delay.toFixed(2) + ' s';
         setBoardHidden(false);
         awaitingReveal = false;
-        setStatus('Continuous flow active');
-        continuousRafId = window.requestAnimationFrame(stepContinuousTargets);
+        setStatus('Waiting for start beep…');
+
+        timers.push(setTimeout(function(){
+          ensureAudio().then(function(){
+            if(!continuousPlan || !continuousPlan.active || !continuousState) return;
+            beepNow(continuousPlan.startFreq, continuousPlan.startLen);
+            continuousState.spawningActive = true;
+            continuousState.lastFrame = performance.now();
+            continuousState.spawnAccumulator = 0;
+            createContinuousTarget();
+            setStatus('Continuous flow active');
+            continuousRafId = window.requestAnimationFrame(stepContinuousTargets);
+          }).catch(function(){});
+        }, delay * 1000));
+
+        if(stopMode === 'time'){
+          timers.push(setTimeout(function(){
+            if(!continuousPlan || !continuousPlan.active) return;
+            completeContinuousSpawning();
+          }, (delay + stopValue) * 1000));
+        }
       }
 
       function stopContinuousRun(skipStatus){
@@ -1964,6 +2251,7 @@ press Stop. Enable alternating to swap between the selected edge and its
         }
         if(continuousState && !skipStatus){ setStatus('Stopped'); }
         continuousState = null;
+        continuousPlan = null;
       }
 
       function currentSettings(){
@@ -1979,10 +2267,9 @@ press Stop. Enable alternating to swap between the selected edge and its
           shotSplit: parseFloat(els.shotSplit.value) || 0,
           firstShotTime: parseFloat(els.firstShotTime.value) || 0,
           shotReloads: parseInt(els.shotReloads.value, 10) || 0,
-          startFreq: parseFloat(els.startFreq.value) || 0,
-          startLen: parseFloat(els.startLen.value) || 0,
-          stopFreq: parseFloat(els.stopFreq.value) || 0,
-          stopLen: parseFloat(els.stopLen.value) || 0,
+          flowStopMode: els.flowStopMode ? els.flowStopMode.value : 'time',
+          flowStopSeconds: parseFloat(els.flowStopSeconds.value) || 0,
+          flowStopTargets: parseInt(els.flowStopTargets.value, 10) || 0,
           targetCount: parseInt(els.targetCount.value, 10) || 0,
           targetShape: els.targetShape.value,
           targetColor: els.targetColor.value,
@@ -2006,6 +2293,7 @@ press Stop. Enable alternating to swap between the selected edge and its
           flowEdge: els.flowEdge ? els.flowEdge.value : 'left',
           flowPlacement: els.flowPlacement ? els.flowPlacement.value : 'random',
           flowAlternate: !!(els.flowAlternate && els.flowAlternate.checked),
+          flowBypassStopwatch: !!(els.flowBypassStopwatch && els.flowBypassStopwatch.checked),
           flowSpeed: parseFloat(els.flowSpeed.value) || 0,
           flowRate: parseFloat(els.flowRate.value) || 0,
           swingRate: parseFloat(els.swingRate.value) || 0,
@@ -2035,10 +2323,9 @@ press Stop. Enable alternating to swap between the selected edge and its
         assignNumber(els.shotSplit, state.shotSplit);
         assignNumber(els.firstShotTime, state.firstShotTime);
         assignNumber(els.shotReloads, state.shotReloads);
-        assignNumber(els.startFreq, state.startFreq);
-        assignNumber(els.startLen, state.startLen);
-        assignNumber(els.stopFreq, state.stopFreq);
-        assignNumber(els.stopLen, state.stopLen);
+        assignValue(els.flowStopMode, state.flowStopMode);
+        assignNumber(els.flowStopSeconds, state.flowStopSeconds);
+        assignNumber(els.flowStopTargets, state.flowStopTargets);
         assignNumber(els.targetCount, state.targetCount);
         assignValue(els.targetShape, state.targetShape);
         assignValue(els.targetColor, state.targetColor);
@@ -2062,6 +2349,7 @@ press Stop. Enable alternating to swap between the selected edge and its
         assignValue(els.flowEdge, state.flowEdge);
         assignValue(els.flowPlacement, state.flowPlacement);
         assignCheckbox(els.flowAlternate, state.flowAlternate);
+        assignCheckbox(els.flowBypassStopwatch, state.flowBypassStopwatch);
         assignNumber(els.flowSpeed, state.flowSpeed);
         assignNumber(els.flowRate, state.flowRate);
         assignNumber(els.swingRate, state.swingRate);
@@ -2074,11 +2362,24 @@ press Stop. Enable alternating to swap between the selected edge and its
         updateModeUI();
         updateBoardTheme();
         toggleSizeInputs();
+        updateContinuousStopWatchUI();
         renderTargets();
         if(!opts.skipSave){ persist(); }
       }
 
+      function applyBeepSettings(state, opts){
+        opts = opts || {};
+        state = normalizeBeepSettings(state);
+        function assignNumber(el, val){ if(!el || val == null || val === '') return; el.value = val; }
+        assignNumber(els.startFreq, state.startFreq);
+        assignNumber(els.startLen, state.startLen);
+        assignNumber(els.stopFreq, state.stopFreq);
+        assignNumber(els.stopLen, state.stopLen);
+        if(!opts.skipSave){ persistBeepSettings(); }
+      }
+
       function persist(){ saveSettings(currentSettings()); }
+      function persistBeepSettings(){ saveBeepSettings(currentBeepSettings()); }
 
       function fillPresetSelect(selected){
         if(!els.presetSelect) return;
@@ -2263,12 +2564,19 @@ press Stop. Enable alternating to swap between the selected edge and its
       els.testStart.addEventListener('click', async function(){ await ensureAudio(); beepNow(Math.max(50, parseFloat(els.startFreq.value) || 0), Math.max(0.05, parseFloat(els.startLen.value) || 0.1)); });
       els.testStop.addEventListener('click', async function(){ await ensureAudio(); beepNow(Math.max(50, parseFloat(els.stopFreq.value) || 0), Math.max(0.05, parseFloat(els.stopLen.value) || 0.1)); });
 
-      ['timerMode','delayMin','delayMax','workDuration','repeats','reloadTime','shotCount','shotSplit','firstShotTime','shotReloads','startFreq','startLen','stopFreq','stopLen'].forEach(function(id){
+      ['timerMode','delayMin','delayMax','workDuration','repeats','reloadTime','shotCount','shotSplit','firstShotTime','shotReloads'].forEach(function(id){
         var input = $(id);
         if(!input) return;
         var updateTimerSetting = function(){ updateModeUI(); persist(); };
         input.addEventListener('input', updateTimerSetting);
         input.addEventListener('change', updateTimerSetting);
+      });
+      ['startFreq','startLen','stopFreq','stopLen'].forEach(function(id){
+        var input = $(id);
+        if(!input) return;
+        var updateBeepSetting = function(){ persistBeepSettings(); };
+        input.addEventListener('input', updateBeepSetting);
+        input.addEventListener('change', updateBeepSetting);
       });
 
       if(els.sessionMode){
@@ -2285,6 +2593,12 @@ press Stop. Enable alternating to swap between the selected edge and its
         if(!input) return;
         input.addEventListener('input', function(){ updateModeUI(); renderTargets(); persist(); });
         input.addEventListener('change', function(){ updateModeUI(); renderTargets(); persist(); });
+      });
+      ['flowStopMode','flowStopSeconds','flowStopTargets'].forEach(function(id){
+        var input = $(id);
+        if(!input) return;
+        input.addEventListener('input', function(){ updateModeUI(); persist(); });
+        input.addEventListener('change', function(){ updateModeUI(); persist(); });
       });
       els.targetNumbered.addEventListener('change', function(){ renderTargets(); persist(); });
       if(els.randomTargetColors){
@@ -2311,7 +2625,9 @@ press Stop. Enable alternating to swap between the selected edge and its
       bindToggleButton(els.useDistanceScaleBtn, els.useDistanceScale);
       bindToggleButton(els.useGridPhysicalSpacingBtn, els.useGridPhysicalSpacing);
       bindToggleButton(els.flowAlternateBtn, els.flowAlternate);
+      bindToggleButton(els.flowBypassStopwatchBtn, els.flowBypassStopwatch);
       bindToggleButton(els.useSwingPhysicalDimensionsBtn, els.useSwingPhysicalDimensions);
+      bindPanelToggles();
       ['flowEdge','flowPlacement','flowSpeed','flowRate','swingRate','swingTargetHeight','swingAxisHeight','useSwingPhysicalDimensions','swingTargetHeightFt','swingAxisHeightFt'].forEach(function(id){
         var input = $(id);
         if(!input) return;
@@ -2325,6 +2641,12 @@ press Stop. Enable alternating to swap between the selected edge and its
       });
       if(els.flowAlternate){
         els.flowAlternate.addEventListener('change', persist);
+      }
+      if(els.flowBypassStopwatch){
+        els.flowBypassStopwatch.addEventListener('change', function(){
+          updateModeUI();
+          persist();
+        });
       }
       if(els.hideTargets){
         els.hideTargets.addEventListener('change', function(){
@@ -2580,6 +2902,7 @@ press Stop. Enable alternating to swap between the selected edge and its
         renderTargets();
         persist();
       }
+      applyBeepSettings(loadBeepSettings(initialSettings), { skipSave: true });
 
       setBoardHidden(false);
       updateModeUI();
