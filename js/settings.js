@@ -5,6 +5,8 @@
 
   var SETTINGS_SCHEMA = [
     { key: 'sessionMode', type: 'value', fallback: 'board' },
+    { key: 'classifierId', type: 'value', fallback: 'cm-03-08-madness' },
+    { key: 'classifierCenterPct', type: 'number', fallback: 0, defaultValue: 28 },
     { key: 'timerMode', type: 'value', fallback: 'single' },
     { key: 'delayMin', type: 'number', fallback: 0, defaultValue: 1 },
     { key: 'delayMax', type: 'number', fallback: 0, defaultValue: 3 },
@@ -66,6 +68,9 @@
   function normalizeSettings(state){
     var normalized = {};
     state = (state && typeof state === 'object') ? state : {};
+    if(state.classifierCenterPct === undefined && state.classifierTopPct !== undefined){
+      state.classifierCenterPct = state.classifierTopPct;
+    }
     SETTINGS_FIELDS.forEach(function(key){
       normalized[key] = state[key] !== undefined ? state[key] : SETTINGS_DEFAULTS[key];
     });
@@ -73,7 +78,7 @@
   }
 
   function readField(els, field){
-    var el = els[field.key];
+    var el = els[field.key] || (field.key === 'classifierId' ? els.classifierSelect : null);
     if(field.type === 'checkbox'){
       return !!(el && el.checked);
     }
@@ -98,7 +103,7 @@
   function applySettings(els, state){
     state = normalizeSettings(state);
     SETTINGS_SCHEMA.forEach(function(field){
-      var el = els && els[field.key];
+      var el = els && (els[field.key] || (field.key === 'classifierId' ? els.classifierSelect : null));
       var val = state[field.key];
       if(!el || val == null || val === '') return;
       if(field.type === 'checkbox'){

@@ -32,7 +32,7 @@
     }
 
     function getTargetTrueHeightInches(shape){
-      if(shape === 'd1' || shape === 'uspsa'){ return 30; }
+      if(shape === 'd1' || shape === 'uspsa' || shape === 'metric' || shape === 'no-shoot'){ return 30; }
       if(shape === 'ipsc-mini'){ return 37.5 / 2.54; }
       if(shape === 'bowling-pin'){ return 15; }
       return 0;
@@ -44,8 +44,9 @@
     }
 
     function getSelectedTargetShape(){
+      if(isClassifierMode()){ return 'metric'; }
       var shape = els.targetShape && els.targetShape.value ? els.targetShape.value : 'circle';
-      return shape === 'square' || shape === 'd1' || shape === 'uspsa' || shape === 'ipsc-mini' || shape === 'bowling-pin' ? shape : 'circle';
+      return shape === 'square' || shape === 'd1' || shape === 'uspsa' || shape === 'metric' || shape === 'no-shoot' || shape === 'ipsc-mini' || shape === 'bowling-pin' ? shape : 'circle';
     }
 
     function canUseDistanceScale(){
@@ -97,7 +98,7 @@
     function targetHeightForCell(shape, cellW, cellH, fitFactor){
       var availableW = Math.max(10, cellW * fitFactor);
       var availableH = Math.max(10, cellH * fitFactor);
-      if(shape === 'd1' || shape === 'uspsa'){ return Math.min(availableH, availableW * (30 / 18)); }
+      if(shape === 'd1' || shape === 'uspsa' || shape === 'metric' || shape === 'no-shoot'){ return Math.min(availableH, availableW * (30 / 18)); }
       if(shape === 'ipsc-mini'){ return Math.min(availableH, availableW * (37.5 / 30)); }
       if(shape === 'bowling-pin'){ return Math.min(availableH, availableW * (15 / 4.8)); }
       return Math.min(availableW, availableH);
@@ -105,7 +106,8 @@
 
     function resolveTargetColor(index){
       var shape = getSelectedTargetShape();
-      if(shape === 'd1' || shape === 'uspsa' || shape === 'ipsc-mini'){ return '#8a5a35'; }
+      if(shape === 'd1' || shape === 'uspsa' || shape === 'metric' || shape === 'ipsc-mini'){ return '#8a5a35'; }
+      if(shape === 'no-shoot'){ return '#ffffff'; }
       if(shape === 'bowling-pin'){ return '#ffffff'; }
       if(els.randomTargetColors && els.randomTargetColors.checked){
         return brightTargetColors[((index || 0) % brightTargetColors.length + brightTargetColors.length) % brightTargetColors.length];
@@ -199,6 +201,23 @@
       return svg;
     }
 
+    function createMetricNoShootSvg(){
+      var ns = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('viewBox', '0 0 18 30');
+      svg.setAttribute('aria-hidden', 'true');
+      svg.setAttribute('focusable', 'false');
+
+      var outline = document.createElementNS(ns, 'path');
+      outline.setAttribute('d', 'M6 0 L12 0 L12 6 L16 6 L18 8 L18 24 L15 30 L3 30 L0 24 L0 8 L2 6 L6 6 Z');
+      outline.setAttribute('fill', '#ffffff');
+      outline.setAttribute('stroke', '#111111');
+      outline.setAttribute('stroke-width', '0.35');
+      svg.appendChild(outline);
+
+      return svg;
+    }
+
     function createIPSCMiniSvg(){
       var ns = 'http://www.w3.org/2000/svg';
       var svg = document.createElementNS(ns, 'svg');
@@ -254,7 +273,7 @@
       return svg;
     }
 
-    function createTargetElement(board, label, size, left, top, shape, color, numbered){
+    function createTargetElement(board, label, size, left, top, shape, color, numbered, zIndex){
       var target = document.createElement('div');
       var dims = getTargetDimensions(shape, size);
       target.className = 'target ' + shape;
@@ -262,15 +281,19 @@
       target.style.height = dims.height.toFixed(2) + 'px';
       target.style.left = left.toFixed(2) + 'px';
       target.style.top = top.toFixed(2) + 'px';
+      if(zIndex != null){ target.style.zIndex = String(zIndex); }
       if(shape === 'd1'){
         target.appendChild(createD1Svg());
         target.style.color = '#fff';
-      } else if(shape === 'uspsa'){
+      } else if(shape === 'uspsa' || shape === 'metric'){
         target.appendChild(createUSPSASvg());
         target.style.color = '#fff';
       } else if(shape === 'ipsc-mini'){
         target.appendChild(createIPSCMiniSvg());
         target.style.color = '#fff';
+      } else if(shape === 'no-shoot'){
+        target.appendChild(createMetricNoShootSvg());
+        target.style.color = '#111';
       } else if(shape === 'bowling-pin'){
         target.appendChild(createBowlingPinSvg());
         target.style.color = '#111';
@@ -295,6 +318,25 @@
       var width = rect.width || global.innerWidth || 800;
       var height = rect.height || global.innerHeight || 600;
       return { width: width, height: height };
+    }
+
+    function isClassifierMode(){
+      return !!(els.sessionMode && els.sessionMode.value === 'classifier');
+    }
+
+    function getSelectedClassifierId(){
+      return els.classifierSelect && els.classifierSelect.value ? els.classifierSelect.value : (ns.classifiers && ns.classifiers.getDefaultClassifierId ? ns.classifiers.getDefaultClassifierId() : '');
+    }
+
+    function getSelectedClassifier(){
+      if(!ns.classifiers || !ns.classifiers.getClassifierById){ return null; }
+      return ns.classifiers.getClassifierById(getSelectedClassifierId());
+    }
+
+    function getClassifierCenterPct(){
+      var value = parseFloat(els.classifierCenterPct && els.classifierCenterPct.value);
+      if(!isFinite(value)){ value = 28; }
+      return Math.min(100, Math.max(0, value));
     }
 
     function overlapPenalty(left, top, dims, placements){
@@ -351,11 +393,56 @@
       }
     }
 
+    function renderClassifierTargets(board, boardW, boardH){
+      var classifier = getSelectedClassifier();
+      if(!classifier){ return; }
+      var numbered = !!(els.targetNumbered && els.targetNumbered.checked);
+      var sizeConfig = getTargetSizeConfig();
+      var size = Math.max(10, sizeConfig.fixedSize);
+      var dims = getTargetDimensions(classifier.targetShape || 'metric', size);
+      var spanTargetWidths = Math.max(1, parseFloat(classifier.layoutSpanTargetWidths) || 1);
+      var usableWidth = Math.max(dims.width, dims.width * spanTargetWidths);
+      var totalSpan = Math.max(0, usableWidth - dims.width);
+      var leftMargin = (boardW - usableWidth) / 2;
+      var topCenter = boardH * getClassifierCenterPct() / 100;
+      var top = topCenter - dims.height / 2;
+      var count = Math.min(classifier.positions.length, classifier.labels.length);
+
+      var placements = [];
+      for(var i=0;i<count;i++){
+        var norm = classifier.positions[i];
+        var label = classifier.labels[i] || '';
+        var kind = classifier.kinds[i] || 'target';
+        var shape = kind === 'no-shoot' ? 'no-shoot' : (classifier.targetShape || 'metric');
+        placements.push({
+          index: i,
+          norm: norm,
+          label: label,
+          kind: kind,
+          shape: shape,
+          left: leftMargin + norm * totalSpan
+        });
+      }
+
+      placements.filter(function(item){ return item.kind === 'target'; }).forEach(function(item){
+        createTargetElement(board, item.label, size, item.left, top, item.shape, resolveTargetColor(item.index), numbered, 1);
+      });
+
+      placements.filter(function(item){ return item.kind !== 'target'; }).forEach(function(item){
+        createTargetElement(board, item.label, size, item.left, top, item.shape, resolveTargetColor(item.index), false, 2);
+      });
+    }
+
     function renderTargets(){
       toggleSizeInputs();
       var board = els.targetBoard;
       if(!board) return;
       board.innerHTML = '';
+      if(isClassifierMode()){
+        var classifierMetrics = getBoardMetrics();
+        renderClassifierTargets(board, classifierMetrics.width, classifierMetrics.height);
+        return;
+      }
       if(isContinuousMode()){
         var continuousState = getContinuousState();
         if(continuousState){ continuousState.targets = []; }
@@ -415,7 +502,7 @@
     }
 
     function isGridLayoutActive(){
-      return !isContinuousMode() && !!(els.targetLayout && els.targetLayout.value === 'grid');
+      return !isContinuousMode() && !isClassifierMode() && !!(els.targetLayout && els.targetLayout.value === 'grid');
     }
 
     function syncGridLimits(count){
@@ -559,16 +646,17 @@
       var distanceAvailable = canUseDistanceScale();
       var distanceActive = distanceAvailable && !!(els.useDistanceScale && els.useDistanceScale.checked);
       var random = !distanceActive && !!(els.randomSizes && els.randomSizes.checked);
-      var randomSizingApplies = !isSwingerMode();
+      var classifierMode = isClassifierMode();
+      var randomSizingApplies = !isSwingerMode() && !classifierMode;
       var fixedOptions = $('fixedSizeOptions');
       var randomOptions = $('randomSizeOptions');
       if(els.distanceScaleOptions){ els.distanceScaleOptions.hidden = !distanceAvailable; }
       if(els.useDistanceScaleBtn){ els.useDistanceScaleBtn.hidden = !distanceAvailable; }
       if(els.screenDistanceLabel){ els.screenDistanceLabel.hidden = !distanceActive; }
       if(els.targetDistanceLabel){ els.targetDistanceLabel.hidden = !distanceActive; }
-      if(els.randomSizesBtn){ els.randomSizesBtn.hidden = isSwingerMode() || distanceActive; }
-      if(fixedOptions){ fixedOptions.hidden = distanceActive || (randomSizingApplies && random); }
-      if(randomOptions){ randomOptions.hidden = distanceActive || !randomSizingApplies || !random; }
+      if(els.randomSizesBtn){ els.randomSizesBtn.hidden = isSwingerMode() || classifierMode || distanceActive; }
+      if(fixedOptions){ fixedOptions.hidden = classifierMode ? distanceActive : (distanceActive || (randomSizingApplies && random)); }
+      if(randomOptions){ randomOptions.hidden = classifierMode || distanceActive || !randomSizingApplies || !random; }
       updateDistanceScaleSummary(distanceAvailable, distanceActive);
       toggleGridInputs();
       toggleSwingInputs();

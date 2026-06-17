@@ -42,13 +42,16 @@
       if(els.sessionMode){
         els.sessionMode.addEventListener('change', function(){
           opts.stopRun(true);
+          if(opts.isClassifierMode && opts.isClassifierMode() && els.useDistanceScale && !els.useDistanceScale.checked){
+            els.useDistanceScale.checked = true;
+          }
           opts.updateModeUI();
           opts.renderTargets();
           opts.persist();
         });
       }
 
-      ['targetCount','targetShape','targetColor','targetSize','targetSizeMin','targetSizeMax','useDistanceScale','screenDistanceFt','targetDistanceYd','targetLayout','gridRows','gridCols','gridSpread','useGridPhysicalSpacing','gridSpacingFt'].forEach(function(id){
+      ['targetCount','targetShape','targetColor','targetSize','targetSizeMin','targetSizeMax','useDistanceScale','screenDistanceFt','targetDistanceYd','targetLayout','gridRows','gridCols','gridSpread','useGridPhysicalSpacing','gridSpacingFt','classifierSelect','classifierCenterPct'].forEach(function(id){
         bindInputEvents($(id), function(){ opts.updateModeUI(); opts.renderTargets(); opts.persist(); });
       });
       ['flowStopMode','flowStopSeconds','flowStopTargets'].forEach(function(id){

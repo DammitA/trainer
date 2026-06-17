@@ -33,10 +33,11 @@
     p{margin:0;}
     label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted);}
     input, select, button{font:inherit;}
-    input[type=number], input[type=text], select{
+    input[type=number], input[type=text], select, textarea{
       background:#101827;border:1px solid var(--panel-border);border-radius:10px;padding:8px 12px;
       color:var(--text);
     }
+    textarea{min-height:110px;resize:vertical;line-height:1.4;}
     label.grid-overridden{color:#ff7a85;}
     input[type=color]{width:48px;height:38px;border:1px solid var(--panel-border);border-radius:10px;padding:2px;background:#101827;}
     input[type=checkbox]{margin-right:6px;accent-color:var(--accent);}
@@ -180,7 +181,7 @@
     .shortcut-card{background:#172236;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px;min-width:0;}
     .shortcut-card strong{font-size:13px;color:var(--text);white-space:nowrap;}
     .shortcut-card span{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .flow-diagram{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+    .flow-diagram{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
     .flow-column{background:#141d2a;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px;display:grid;gap:12px;align-content:start;}
     .flow-column h3{margin:0;color:var(--text);font-size:18px;}
     .flow-node{border:1px solid rgba(62,168,255,0.26);background:rgba(62,168,255,0.08);border-radius:12px;padding:11px;position:relative;}
@@ -276,9 +277,22 @@
               <label>Session mode
                 <select id="sessionMode">
                   <option value="board" selected="selected">Timed board</option>
+                  <option value="classifier">Classifier</option>
                   <option value="continuous">Continuous flow</option>
                   <option value="swinger">Swinger</option>
                 </select>
+              </label>
+              <label id="classifierLabel" hidden>Classifier
+                <select id="classifierSelect">
+                  <option value="cm-03-08-madness" selected="selected">CM 03-08 Madness</option>
+                </select>
+              </label>
+              <label id="classifierHeightLabel" hidden>Pattern center (% from top)
+                <input type="number" id="classifierCenterPct" min="0" max="100" step="1" value="28">
+              </label>
+              <p id="classifierSummary" class="note" hidden>7 metric targets, 4 no-shoots, with size-by-distance enabled.</p>
+              <label id="classifierProcedureLabel" hidden>Stage Procedure
+                <textarea id="classifierProcedure" readonly rows="6"></textarea>
               </label>
             </div>
           </div>
@@ -294,7 +308,7 @@
             <label id="targetCountLabel">Number of targets
               <input type="number" id="targetCount" min="0" max="60" step="1" value="8">
             </label>
-            <label>Shape
+            <label id="targetShapeLabel">Shape
               <select id="targetShape">
                 <option value="circle" selected="selected">Circle</option>
                 <option value="square">Square</option>
@@ -567,7 +581,7 @@
       </div>
 
       <div class="shortcut-strip">
-        <div class="shortcut-card"><strong>Space bar</strong><span>Starts and stops the active drill: timed board, continuous flow, or swinger.</span></div>
+        <div class="shortcut-card"><strong>Space bar</strong><span>Starts and stops the active drill: timed board, classifier, continuous flow, or swinger.</span></div>
         <div class="shortcut-card"><strong>Esc</strong><span>Hides or shows the settings panel from the main screen.</span></div>
       </div>
 
@@ -577,6 +591,13 @@
           <div class="flow-node"><strong>Timer mode</strong><span>There are 3 different par timer modes: single par, reload-separated par, or shot-defined par.</span></div>
           <div class="flow-node"><strong>Targets</strong><ul><li>Number of targets</li><li>Target shape</li><li>Random or grid layout</li><li>Optional numbered targets</li></ul></div>
           <div class="flow-node"><strong>Presentation</strong><ul><li>Random start delay arms the run</li><li>Hide until start beep can conceal targets</li><li>Start/stop or shot beeps drive the drill</li></ul></div>
+        </article>
+
+        <article class="flow-column">
+          <h3>Classifier</h3>
+          <div class="flow-node"><strong>Fixed geometry</strong><span>Pick a classifier and the app lays out the exact target and no-shoot pattern from the course brief.</span></div>
+          <div class="flow-node"><strong>Distance scaling</strong><ul><li>Size by distance is on by default</li><li>Enter your screen distance to scale the targets correctly</li></ul></div>
+          <div class="flow-node"><strong>Timer</strong><span>Uses the same single, reload-separated, and shot-defined timer modes as the timed board.</span></div>
         </article>
 
         <article class="flow-column">
@@ -631,6 +652,7 @@
   <script src="js/timer-mode.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/presets.js"></script>
+  <script src="js/classifiers.js"></script>
   <script src="js/targets.js"></script>
   <script src="js/motion.js"></script>
   <script src="js/continuous-mode.js"></script>
@@ -651,12 +673,13 @@
         targetNumbered: $('targetNumbered'), randomTargetColors: $('randomTargetColors'), darkBoard: $('darkBoard'), randomSizes: $('randomSizes'), targetSize: $('targetSize'),
         targetSizeMin: $('targetSizeMin'), targetSizeMax: $('targetSizeMax'), useDistanceScale: $('useDistanceScale'), screenDistanceFt: $('screenDistanceFt'), targetDistanceYd: $('targetDistanceYd'),
         targetBoard: $('targetBoard'),
+        classifierSelect: $('classifierSelect'), classifierCenterPct: $('classifierCenterPct'), classifierLabel: $('classifierLabel'), classifierHeightLabel: $('classifierHeightLabel'), classifierSummary: $('classifierSummary'), classifierProcedureLabel: $('classifierProcedureLabel'), classifierProcedure: $('classifierProcedure'),
         targetLayout: $('targetLayout'), gridRows: $('gridRows'), gridCols: $('gridCols'), gridRowsLabel: $('gridRowsLabel'), gridColsLabel: $('gridColsLabel'), gridSpread: $('gridSpread'), useGridPhysicalSpacing: $('useGridPhysicalSpacing'), gridSpacingFt: $('gridSpacingFt'), hideTargets: $('hideTargets'),
         toggleMenu: $('toggleMenu'), configPane: $('configPane'),
         modePanel: $('modePanel'), targetsPanel: $('targetsPanel'), timerPanel: $('timerPanel'), timerModeLabel: $('timerModeLabel'), continuousPanel: $('continuousPanel'), swingerPanel: $('swingerPanel'), beepPanel: $('beepPanel'),
         workDurationLabel: $('workDurationLabel'), repeatsLabel: $('repeatsLabel'), reloadTimeLabel: $('reloadTimeLabel'),
         shotCountLabel: $('shotCountLabel'), shotSplitLabel: $('shotSplitLabel'), firstShotTimeLabel: $('firstShotTimeLabel'), shotReloadsLabel: $('shotReloadsLabel'),
-        targetCountLabel: $('targetCountLabel'), targetColorLabel: $('targetColorLabel'), targetLayoutLabel: $('targetLayoutLabel'),
+        targetCountLabel: $('targetCountLabel'), targetShapeLabel: $('targetShapeLabel'), targetColorLabel: $('targetColorLabel'), targetLayoutLabel: $('targetLayoutLabel'),
         targetNumberedBtn: $('targetNumberedBtn'), randomTargetColorsBtn: $('randomTargetColorsBtn'), darkBoardBtn: $('darkBoardBtn'), randomSizesBtn: $('randomSizesBtn'), hideTargetsBtn: $('hideTargetsBtn'),
         distanceScaleOptions: $('distanceScaleOptions'), useDistanceScaleBtn: $('useDistanceScaleBtn'), screenDistanceLabel: $('screenDistanceLabel'), targetDistanceLabel: $('targetDistanceLabel'), distanceScaleSummary: $('distanceScaleSummary'), useGridPhysicalSpacingBtn: $('useGridPhysicalSpacingBtn'), gridSpacingFtLabel: $('gridSpacingFtLabel'),
         flowEdge: $('flowEdge'), flowPlacement: $('flowPlacement'), flowAlternate: $('flowAlternate'), flowAlternateBtn: $('flowAlternateBtn'), flowSpeed: $('flowSpeed'), flowRate: $('flowRate'),
@@ -994,6 +1017,19 @@
         return !!(els.sessionMode && els.sessionMode.value === 'swinger');
       }
 
+      function isClassifierMode(){
+        return !!(els.sessionMode && els.sessionMode.value === 'classifier');
+      }
+
+      function updateClassifierProcedure(){
+        if(!els.classifierProcedure){ return; }
+        var classifierApi = window.TargetTrainer && window.TargetTrainer.classifiers ? window.TargetTrainer.classifiers : null;
+        var classifierDef = classifierApi && classifierApi.getClassifierById ? classifierApi.getClassifierById(els.classifierSelect && els.classifierSelect.value) : null;
+        var text = classifierDef && classifierDef.stageProcedure ? classifierDef.stageProcedure : '';
+        els.classifierProcedure.value = text;
+        els.classifierProcedure.textContent = text;
+      }
+
       function getTimerMode(){
         return els.timerMode && els.timerMode.value ? els.timerMode.value : 'single';
       }
@@ -1222,19 +1258,26 @@
       function updateModeUI(){
         var continuous = isContinuousMode();
         var swinger = isSwingerMode();
+        var classifier = isClassifierMode();
         var motionMode = continuous || swinger;
         var shape = getSelectedTargetShape();
         var plainColorShape = shape === 'circle' || shape === 'square';
         if(els.timerPanel){ els.timerPanel.hidden = swinger; }
         if(els.continuousPanel){ els.continuousPanel.hidden = !continuous; }
         if(els.swingerPanel){ els.swingerPanel.hidden = !swinger; }
-        if(els.targetCountLabel){ els.targetCountLabel.hidden = motionMode; }
-        if(els.targetLayoutLabel){ els.targetLayoutLabel.hidden = motionMode; }
+        if(els.classifierLabel){ els.classifierLabel.hidden = !classifier; }
+        if(els.classifierHeightLabel){ els.classifierHeightLabel.hidden = !classifier; }
+        if(els.classifierSummary){ els.classifierSummary.hidden = !classifier; }
+        if(els.classifierProcedureLabel){ els.classifierProcedureLabel.hidden = !classifier; }
+        updateClassifierProcedure();
+        if(els.targetCountLabel){ els.targetCountLabel.hidden = motionMode || classifier; }
+        if(els.targetShapeLabel){ els.targetShapeLabel.hidden = classifier; }
+        if(els.targetLayoutLabel){ els.targetLayoutLabel.hidden = motionMode || classifier; }
         if(els.hideTargetsBtn){ els.hideTargetsBtn.hidden = motionMode; }
-        if(els.targetColorLabel){ els.targetColorLabel.hidden = !plainColorShape || !!(els.randomTargetColors && els.randomTargetColors.checked); }
-        if(els.randomTargetColorsBtn){ els.randomTargetColorsBtn.hidden = !plainColorShape; }
+        if(els.targetColorLabel){ els.targetColorLabel.hidden = classifier || !plainColorShape || !!(els.randomTargetColors && els.randomTargetColors.checked); }
+        if(els.randomTargetColorsBtn){ els.randomTargetColorsBtn.hidden = classifier || !plainColorShape; }
         if(els.targetNumberedBtn){ els.targetNumberedBtn.hidden = swinger; }
-        if(els.randomSizesBtn){ els.randomSizesBtn.hidden = swinger; }
+        if(els.randomSizesBtn){ els.randomSizesBtn.hidden = swinger || classifier; }
         if(els.darkBoardBtn){ els.darkBoardBtn.hidden = false; }
         updatePanelOrder();
         updateContinuousStopWatchUI();
@@ -1439,6 +1482,7 @@
         syncAllToggleButtons: syncAllToggleButtons,
         bindPanelToggles: bindPanelToggles,
         isSwingerMode: isSwingerMode,
+        isClassifierMode: isClassifierMode,
         getSwingerState: function(){ return swingerState; },
         getPlan: function(){ return plan; },
         getAwaitingReveal: function(){ return awaitingReveal; },
