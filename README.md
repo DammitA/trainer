@@ -1,24 +1,28 @@
 # Target Training App
 
-`Target Training App` is a single-page browser tool for visual target drills. It combines configurable target shapes, timer beeps, continuous moving targets, swinger motion, presets, and screen calibration in one self-contained `index.html` file.
+`Target Training App` is a single-page browser tool for visual target drills. It combines configurable target shapes, timer beeps, classifier layouts, continuous moving targets, swinger motion, presets, and screen calibration.
 
 It is designed for local use: open the page in a modern browser, adjust settings, and start training. No build step, server, or external dependencies are required.
 
 ## Features
 
-- Three modes: `Timed board`, `Continuous flow`, and `Swinger`
+- Four modes: `Timed board`, `Classifier`, `Continuous flow`, and `Swinger`
 - Three timer styles for timed board drills: `Single Par Time`, `Reload separated par`, and `Shot Defined Par`
 - Built-in default presets plus user presets stored in browser `localStorage`
 - CSV preset import and export
 - Target shapes: circle, square, NRA D1, USPSA, IPSC Mini, and bowling pin
 - Fixed target sizing, randomized target sizing, or calibrated distance-based sizing for dimensioned targets
 - Optional numbered targets, bright color cycling, black background, grid layout, and hide-until-start behavior
+- Classifier layouts with fixed target/no-shoot geometry
+- Continuous target flow with configurable spawn edges, speed, density, and stop behavior
+- Swinger mode with optional Activated timing, side activator targets, axis marker, and hard cover
 - Screen calibration with a credit-card reference rectangle
 - Keyboard shortcuts for start/stop and settings visibility
 
 ## Files
 
-- [index.html](/home/alex/Documents/Shooting/dammit/usr/share/html/dammit_org/trainer/index.html): complete application, including markup, styles, and JavaScript
+- [index.html](/home/alex/Documents/Shooting/dammit/usr/share/html/dammit_org/trainer/index.html): application markup, styles, and main wiring
+- [js/](/home/alex/Documents/Shooting/dammit/usr/share/html/dammit_org/trainer/js): app modules for settings, presets, audio, targets, motion, timer mode, continuous mode, swinger mode, and UI bindings
 
 ## Getting Started
 
@@ -33,7 +37,7 @@ The app is entirely client-side.
 
 ## Keyboard Controls
 
-- `Space`: starts or stops the active drill, including timers, continuous flow, and swinger motion
+- `Space`: starts or stops the active drill, including timers, continuous flow, normal Swinger, and Activated Swinger timing
 - `Esc`: hides or shows the settings pane
 
 Starting a drill does not automatically hide the settings pane. Use `Hide` or `Esc` when you want the board unobstructed.
@@ -50,29 +54,76 @@ Timed board renders a static set of targets and runs a beep-defined drill. The t
 
 If `Hide until start beep` is enabled, targets stay hidden until the start beep.
 
+### Classifier
+
+Classifier mode renders a fixed drill layout from the selected course brief. It supports fixed target and no-shoot geometry, and uses the same timer modes as Timed Board.
+
+Useful controls include:
+
+- `Classifier`
+- `Target center height`
+- distance scaling controls
+- beep/timer settings
+
 ### Continuous Flow
 
-Continuous flow ignores the timer panel and creates moving targets until stopped. It supports direction, edge behavior, flow speed, and creation rate.
+Continuous flow creates moving targets from configurable board edges. It supports edge selection, randomized or ordered start positions, opposite-edge alternation, flow speed, creation rate, and optional stopwatch behavior.
 
 Useful controls include:
 
 - `Spawn source`
 - `Start positions`
 - `Alternate opposite edge`
+- `Bypass stopwatch`
+- `Stop after seconds` or `Stop after targets`
 - `Flow speed (px/s)`
 - `Creation rate (targets/s)`
 
 ### Swinger
 
-Swinger mode ignores the timer panel and animates a single target around a configurable pivot. Space bar, `Start`, and `Stop` pause and resume the same motion state.
+Swinger mode animates a single target around a configurable pivot. Normal Swinger starts moving immediately and continues until `Stop` or the space bar.
 
 Useful controls include:
 
-- swing width
-- swing height
-- axis height
-- period
-- angle range
+- `Swing rate (deg/s)`
+- `Target height (px)` or target-distance-based swing dimensions
+- `Axis height (px)` or target-distance-based axis height
+- `Show axis point`
+
+#### Activated Swinger
+
+`Activated` adds a timing sequence and two side activator targets. The swinger starts held down to the selected side, then releases after the configured cue sequence:
+
+1. Random start delay counts down.
+2. Start beep sounds.
+3. Draw time runs, if nonzero.
+4. Draw-time cue beep sounds, if draw time is nonzero.
+5. Activator delay runs.
+6. Swinger begins moving and continues until stopped.
+
+Activated controls include:
+
+- start lean: left or right
+- random start min/max
+- draw time
+- activator delay
+- side target shape, size, color for circle/square, vertical offset, and left/right X positions
+
+Side activator targets render above hard cover.
+
+#### Hard Cover
+
+`Hard cover` adds solid wall-style cover over the Swinger board. Enable the master toggle, then enable bottom, left, and/or right cover independently.
+
+Controls include:
+
+- wall color
+- wall opacity
+- bottom coverage percent
+- left coverage percent
+- right coverage percent
+
+Overlapping hard-cover regions stay at the selected opacity instead of becoming darker.
 
 ## Presets
 
@@ -136,7 +187,7 @@ The beeps use the browser Web Audio API. Browsers may require a user interaction
 
 ## Limitations
 
-- This is a single-file browser app, not a packaged application
+- This is a static browser app, not a packaged application
 - Presets and calibration are local to one browser profile unless exported
 - There is no scoring, hit detection, or session logging
 - Continuous flow does not avoid collisions between moving targets
