@@ -77,11 +77,18 @@
       bindToggleButton(els.flowAlternateBtn, els.flowAlternate);
       bindToggleButton(els.flowBypassStopwatchBtn, els.flowBypassStopwatch);
       bindToggleButton(els.useSwingPhysicalDimensionsBtn, els.useSwingPhysicalDimensions);
+      bindToggleButton(els.swingAxisPointVisibleBtn, els.swingAxisPointVisible);
+      bindToggleButton(els.swingActivatedEnabledBtn, els.swingActivatedEnabled);
+      bindToggleButton(els.swingHardCoverEnabledBtn, els.swingHardCoverEnabled);
+      bindToggleButton(els.swingHardCoverBottomEnabledBtn, els.swingHardCoverBottomEnabled);
+      bindToggleButton(els.swingHardCoverLeftEnabledBtn, els.swingHardCoverLeftEnabled);
+      bindToggleButton(els.swingHardCoverRightEnabledBtn, els.swingHardCoverRightEnabled);
       opts.bindPanelToggles();
 
-      ['flowEdge','flowPlacement','flowSpeed','flowRate','swingRate','swingTargetHeight','swingAxisHeight','useSwingPhysicalDimensions','swingTargetHeightFt','swingAxisHeightFt'].forEach(function(id){
+      ['flowEdge','flowPlacement','flowSpeed','flowRate','swingRate','swingTargetHeight','swingAxisHeight','useSwingPhysicalDimensions','swingTargetHeightFt','swingAxisHeightFt','swingAxisPointVisible','swingActivatedEnabled','swingActivatedLean','swingActivatedDelayMin','swingActivatedDelayMax','swingActivatedDrawTime','swingActivatedDelay','swingActivatorShape','swingActivatorColor','swingActivatorSize','swingActivatorYOffset','swingActivatorLeftX','swingActivatorRightX','swingHardCoverEnabled','swingHardCoverBottomEnabled','swingHardCoverBottomPercent','swingHardCoverLeftEnabled','swingHardCoverLeftPercent','swingHardCoverRightEnabled','swingHardCoverRightPercent','swingHardCoverColor','swingHardCoverOpacity'].forEach(function(id){
         bindInputEvents($(id), function(){
           opts.toggleSwingInputs();
+          if(id === 'swingActivatedEnabled' || id === 'swingActivatorShape' || id === 'swingHardCoverEnabled'){ opts.updateModeUI(); }
           if((id.indexOf('swing') === 0 || id === 'useSwingPhysicalDimensions') && opts.isSwingerMode() && !opts.getSwingerState()){ opts.renderTargets(); }
           opts.persist();
         });

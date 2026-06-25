@@ -51,7 +51,29 @@
     { key: 'swingAxisHeight', type: 'number', fallback: 0, defaultValue: 80 },
     { key: 'useSwingPhysicalDimensions', type: 'checkbox', fallback: false },
     { key: 'swingTargetHeightFt', type: 'number', fallback: 0, defaultValue: 2 },
-    { key: 'swingAxisHeightFt', type: 'number', fallback: 0, defaultValue: 0.5 }
+    { key: 'swingAxisHeightFt', type: 'number', fallback: 0, defaultValue: 0.5 },
+    { key: 'swingAxisPointVisible', type: 'checkbox', fallback: false },
+    { key: 'swingActivatedEnabled', type: 'checkbox', fallback: false },
+    { key: 'swingActivatedLean', type: 'value', fallback: 'left' },
+    { key: 'swingActivatedDelayMin', type: 'number', fallback: 0, defaultValue: 1 },
+    { key: 'swingActivatedDelayMax', type: 'number', fallback: 0, defaultValue: 3 },
+    { key: 'swingActivatedDrawTime', type: 'number', fallback: 0, defaultValue: 1 },
+    { key: 'swingActivatedDelay', type: 'number', fallback: 0, defaultValue: 0.25 },
+    { key: 'swingActivatorShape', type: 'value', fallback: 'uspsa' },
+    { key: 'swingActivatorColor', type: 'value', fallback: '#d62828' },
+    { key: 'swingActivatorSize', type: 'number', fallback: 0, defaultValue: 220 },
+    { key: 'swingActivatorYOffset', type: 'number', fallback: 0 },
+    { key: 'swingActivatorLeftX', type: 'number', fallback: 0, defaultValue: 25 },
+    { key: 'swingActivatorRightX', type: 'number', fallback: 0, defaultValue: 75 },
+    { key: 'swingHardCoverEnabled', type: 'checkbox', fallback: false },
+    { key: 'swingHardCoverBottomEnabled', type: 'checkbox', fallback: false },
+    { key: 'swingHardCoverBottomPercent', type: 'number', fallback: 0, defaultValue: 25 },
+    { key: 'swingHardCoverLeftEnabled', type: 'checkbox', fallback: false },
+    { key: 'swingHardCoverLeftPercent', type: 'number', fallback: 0, defaultValue: 25 },
+    { key: 'swingHardCoverRightEnabled', type: 'checkbox', fallback: false },
+    { key: 'swingHardCoverRightPercent', type: 'number', fallback: 0, defaultValue: 25 },
+    { key: 'swingHardCoverColor', type: 'value', fallback: '#111111' },
+    { key: 'swingHardCoverOpacity', type: 'number', fallback: 0, defaultValue: 0.9 }
   ];
 
   function getSettingsDefaults(){
@@ -70,6 +92,16 @@
     state = (state && typeof state === 'object') ? state : {};
     if(state.classifierCenterPct === undefined && state.classifierTopPct !== undefined){
       state.classifierCenterPct = state.classifierTopPct;
+    }
+    if(state.swingHardCoverEnabled !== undefined && (state.swingHardCoverEdge !== undefined || state.swingHardCoverPercent !== undefined)){
+      var legacyEdge = state.swingHardCoverEdge || 'bottom';
+      var legacyEnabledKey = legacyEdge === 'left' ? 'swingHardCoverLeftEnabled' : (legacyEdge === 'right' ? 'swingHardCoverRightEnabled' : 'swingHardCoverBottomEnabled');
+      var legacyPercentKey = legacyEdge === 'left' ? 'swingHardCoverLeftPercent' : (legacyEdge === 'right' ? 'swingHardCoverRightPercent' : 'swingHardCoverBottomPercent');
+      if(state[legacyEnabledKey] === undefined) state[legacyEnabledKey] = !!state.swingHardCoverEnabled;
+      if(state[legacyPercentKey] === undefined && state.swingHardCoverPercent !== undefined) state[legacyPercentKey] = state.swingHardCoverPercent;
+    }
+    if(state.swingHardCoverEnabled === undefined && (state.swingHardCoverBottomEnabled || state.swingHardCoverLeftEnabled || state.swingHardCoverRightEnabled)){
+      state.swingHardCoverEnabled = true;
     }
     SETTINGS_FIELDS.forEach(function(key){
       normalized[key] = state[key] !== undefined ? state[key] : SETTINGS_DEFAULTS[key];

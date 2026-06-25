@@ -53,15 +53,17 @@
       return hasCalibration() && getTargetTrueHeightInches(getSelectedTargetShape()) > 0;
     }
 
-    function getDistanceScaleSize(){
-      var shape = getSelectedTargetShape();
+    function getDistanceScaleSizeFor(shape, targetYd){
       var trueHeightIn = getTargetTrueHeightInches(shape);
       var screenIn = Math.max(0.1, parseFloat(els.screenDistanceFt.value) || 2) * 12;
-      var targetYd = Math.max(0.1, parseFloat(els.targetDistanceYd.value) || 10);
-      var targetIn = targetYd * 36;
+      var targetIn = Math.max(0.1, parseFloat(targetYd) || 10) * 36;
       var calibration = getCalibration();
       if(!hasCalibration() || !trueHeightIn){ return 0; }
       return Math.max(10, trueHeightIn * (screenIn / targetIn) * calibration.pxPerIn);
+    }
+
+    function getDistanceScaleSize(){
+      return getDistanceScaleSizeFor(getSelectedTargetShape(), els.targetDistanceYd && els.targetDistanceYd.value);
     }
 
     function getDistanceScalePercent(){
@@ -273,7 +275,29 @@
       return svg;
     }
 
-    function createTargetElement(board, label, size, left, top, shape, color, numbered, zIndex){
+    function createHardCoverSvg(orientation){
+      if(orientation !== 'lower-left' && orientation !== 'lower-right'){ return null; }
+      var ns = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(ns, 'svg');
+      svg.setAttribute('viewBox', '0 0 18 30');
+      svg.setAttribute('aria-hidden', 'true');
+      svg.setAttribute('focusable', 'false');
+      svg.style.position = 'absolute';
+      svg.style.inset = '0';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      svg.style.zIndex = '1';
+      svg.style.pointerEvents = 'none';
+
+      var cover = document.createElementNS(ns, 'polygon');
+      cover.setAttribute('points', orientation === 'lower-left' ? '0,30 0,9 18,30' : '18,30 18,9 0,30');
+      cover.setAttribute('fill', '#050505');
+      svg.appendChild(cover);
+
+      return svg;
+    }
+
+    function createTargetElement(board, label, size, left, top, shape, color, numbered, zIndex, hardCover){
       var target = document.createElement('div');
       var dims = getTargetDimensions(shape, size);
       target.className = 'target ' + shape;
@@ -303,9 +327,12 @@
       }
       var fontSize = Math.max(12, size * 0.32);
       target.style.fontSize = fontSize.toFixed(2) + 'px';
+      var hardCoverSvg = createHardCoverSvg(hardCover);
+      if(hardCoverSvg){ target.appendChild(hardCoverSvg); }
       if(numbered){
         var span = document.createElement('span');
         span.textContent = String(label);
+        if(hardCoverSvg){ span.style.zIndex = '2'; }
         target.appendChild(span);
       }
       board.appendChild(target);
@@ -398,14 +425,15 @@
       if(!classifier){ return; }
       var numbered = !!(els.targetNumbered && els.targetNumbered.checked);
       var sizeConfig = getTargetSizeConfig();
-      var size = Math.max(10, sizeConfig.fixedSize);
-      var dims = getTargetDimensions(classifier.targetShape || 'metric', size);
+      var baseShape = classifier.targetShape || 'metric';
+      var baseSize = Math.max(10, sizeConfig.fixedSize);
+      var baseDims = getTargetDimensions(baseShape, baseSize);
+      var distanceScale = canUseDistanceScale() && !!(els.useDistanceScale && els.useDistanceScale.checked);
       var spanTargetWidths = Math.max(1, parseFloat(classifier.layoutSpanTargetWidths) || 1);
-      var usableWidth = Math.max(dims.width, dims.width * spanTargetWidths);
-      var totalSpan = Math.max(0, usableWidth - dims.width);
+      var usableWidth = Math.max(baseDims.width, baseDims.width * spanTargetWidths);
+      var totalSpan = Math.max(0, usableWidth - baseDims.width);
       var leftMargin = (boardW - usableWidth) / 2;
-      var topCenter = boardH * getClassifierCenterPct() / 100;
-      var top = topCenter - dims.height / 2;
+      var baseCenterY = boardH * getClassifierCenterPct() / 100;
       var count = Math.min(classifier.positions.length, classifier.labels.length);
 
       var placements = [];
@@ -413,23 +441,30 @@
         var norm = classifier.positions[i];
         var label = classifier.labels[i] || '';
         var kind = classifier.kinds[i] || 'target';
-        var shape = kind === 'no-shoot' ? 'no-shoot' : (classifier.targetShape || 'metric');
+        var shape = kind === 'no-shoot' ? 'no-shoot' : baseShape;
+        var targetYd = classifier.distancesYd && classifier.distancesYd[i] ? classifier.distancesYd[i] : 0;
+        var itemSize = distanceScale && targetYd ? getDistanceScaleSizeFor(shape, targetYd) : baseSize;
+        var dims = getTargetDimensions(shape, itemSize);
+        var centerX = leftMargin + baseDims.width / 2 + norm * totalSpan;
         placements.push({
           index: i,
           norm: norm,
           label: label,
           kind: kind,
           shape: shape,
-          left: leftMargin + norm * totalSpan
+          size: itemSize,
+          top: baseCenterY - dims.height / 2,
+          hardCover: classifier.hardCover && classifier.hardCover[i] ? classifier.hardCover[i] : '',
+          left: centerX - dims.width / 2
         });
       }
 
       placements.filter(function(item){ return item.kind === 'target'; }).forEach(function(item){
-        createTargetElement(board, item.label, size, item.left, top, item.shape, resolveTargetColor(item.index), numbered, 1);
+        createTargetElement(board, item.label, item.size, item.left, item.top, item.shape, resolveTargetColor(item.index), numbered, 1, item.hardCover);
       });
 
       placements.filter(function(item){ return item.kind !== 'target'; }).forEach(function(item){
-        createTargetElement(board, item.label, size, item.left, top, item.shape, resolveTargetColor(item.index), false, 2);
+        createTargetElement(board, item.label, item.size, item.left, item.top, item.shape, resolveTargetColor(item.index), false, 2);
       });
     }
 

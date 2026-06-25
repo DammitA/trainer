@@ -32,6 +32,8 @@
     h2{margin:0 0 12px;font-size:18px;color:var(--muted);}
     p{margin:0;}
     label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted);}
+    .input-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .input-pair label{min-width:0;}
     input, select, button{font:inherit;}
     input[type=number], input[type=text], select, textarea{
       background:#101827;border:1px solid var(--panel-border);border-radius:10px;padding:8px 12px;
@@ -182,7 +184,7 @@
     .shortcut-card strong{font-size:13px;color:var(--text);white-space:nowrap;}
     .shortcut-card span{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .flow-diagram{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
-    .flow-column{background:#141d2a;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px;display:grid;gap:12px;align-content:start;}
+    .flow-column{background:#141d2a;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:14px;display:grid;gap:12px;align-content:start;max-height:min(520px,58vh);overflow-y:auto;overscroll-behavior:contain;}
     .flow-column h3{margin:0;color:var(--text);font-size:18px;}
     .flow-node{border:1px solid rgba(62,168,255,0.26);background:rgba(62,168,255,0.08);border-radius:12px;padding:11px;position:relative;}
     .flow-node:not(:last-child)::after{content:"";position:absolute;left:50%;bottom:-13px;width:2px;height:13px;background:rgba(62,168,255,0.35);}
@@ -194,6 +196,7 @@
       .help-overlay{padding:14px;}
       .help-dialog{padding:18px;}
       .flow-diagram,.shortcut-strip{grid-template-columns:1fr;}
+      .flow-column{max-height:42vh;}
       .help-header{align-items:stretch;flex-direction:column;}
     }
 
@@ -216,6 +219,8 @@
     .target.d1 svg,.target.uspsa svg,.target.ipsc-mini svg,.target.bowling-pin svg{position:absolute;inset:0;width:100%;height:100%;display:block;filter:drop-shadow(0 10px 18px rgba(0,0,0,0.22));}
     .target.d1 span,.target.uspsa span,.target.ipsc-mini span,.target.bowling-pin span{position:relative;z-index:1;}
     .target.swinger-target{transition:opacity .3s ease;transform-origin:center center;}
+    .swinger-hard-cover{position:absolute;pointer-events:none;z-index:5;}
+    .swinger-axis-point{position:absolute;width:8px;height:8px;border-radius:50%;pointer-events:none;z-index:7;transform:translate(-50%,-50%);box-shadow:0 0 0 1px rgba(255,255,255,0.5);}
     .target span{display:flex;align-items:center;justify-content:center;padding:0.2em 0.5em;border-radius:0.6em;background:rgba(0,0,0,0.25);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);min-width:1.4em;}
     #targetBoard.targets-hidden .target{opacity:0;}
     @media (max-width:720px){
@@ -285,6 +290,7 @@
               <label id="classifierLabel" hidden>Classifier
                 <select id="classifierSelect">
                   <option value="cm-03-08-madness" selected="selected">CM 03-08 Madness</option>
+                  <option value="icore-cs-040-this-looks-familiar">ICORE CS-040 This Looks Familiar</option>
                 </select>
               </label>
               <label id="classifierHeightLabel" hidden>Pattern center (% from top)
@@ -515,6 +521,8 @@
               <label>Axis height (px)
                 <input type="number" id="swingAxisHeight" min="0" max="2000" step="1" value="80">
               </label>
+              <button type="button" class="toggle-btn soft" id="swingAxisPointVisibleBtn" aria-pressed="false">Show axis point</button>
+              <input type="checkbox" id="swingAxisPointVisible" hidden>
             </div>
             <div class="size-opts" id="swingPhysicalOptions">
               <button type="button" class="toggle-btn soft" id="useSwingPhysicalDimensionsBtn" aria-pressed="false">Swing dimensions by target distance</button>
@@ -525,6 +533,92 @@
               <label id="swingAxisHeightFtLabel">Axis height (ft perceived)
                 <input type="number" id="swingAxisHeightFt" min="0" max="50" step="0.1" value="0.5">
               </label>
+            </div>
+            <div class="subpanel">
+              <div class="size-opts">
+                <button type="button" class="toggle-btn soft" id="swingActivatedEnabledBtn" aria-pressed="false">Activated</button>
+                <input type="checkbox" id="swingActivatedEnabled" hidden>
+              </div>
+              <div id="swingActivatedControls" class="grid two" hidden>
+                <label>Start lean
+                  <select id="swingActivatedLean">
+                    <option value="left" selected="selected">Left</option>
+                    <option value="right">Right</option>
+                  </select>
+                </label>
+                <div class="input-pair">
+                  <label>Random min (s)
+                    <input type="number" id="swingActivatedDelayMin" min="0" max="60" step="0.05" value="1">
+                  </label>
+                  <label>Random max (s)
+                    <input type="number" id="swingActivatedDelayMax" min="0" max="60" step="0.05" value="3">
+                  </label>
+                </div>
+                <label>Draw time (s)
+                  <input type="number" id="swingActivatedDrawTime" min="0" max="20" step="0.05" value="1">
+                </label>
+                <label>Activator delay (s)
+                  <input type="number" id="swingActivatedDelay" min="0" max="10" step="0.05" value="0.25">
+                </label>
+                <label>Side target shape
+                  <select id="swingActivatorShape">
+                    <option value="circle">Circle</option>
+                    <option value="square">Square</option>
+                    <option value="d1">NRA D1</option>
+                    <option value="uspsa" selected="selected">USPSA</option>
+                    <option value="ipsc-mini">IPSC Mini</option>
+                    <option value="bowling-pin">Bowling pin</option>
+                  </select>
+                </label>
+                <label id="swingActivatorColorLabel">Side target color
+                  <input type="color" id="swingActivatorColor" value="#d62828">
+                </label>
+                <label>Side target size (px)
+                  <input type="number" id="swingActivatorSize" min="10" max="2000" step="1" value="220">
+                </label>
+                <label>Vertical offset from axis (px)
+                  <input type="number" id="swingActivatorYOffset" min="-2000" max="2000" step="1" value="0">
+                </label>
+                <label>Left target X (%)
+                  <input type="number" id="swingActivatorLeftX" min="0" max="100" step="1" value="25">
+                </label>
+                <label>Right target X (%)
+                  <input type="number" id="swingActivatorRightX" min="0" max="100" step="1" value="75">
+                </label>
+              </div>
+            </div>
+            <div class="subpanel">
+              <div class="size-opts">
+                <button type="button" class="toggle-btn soft" id="swingHardCoverEnabledBtn" aria-pressed="false">Hard cover</button>
+                <input type="checkbox" id="swingHardCoverEnabled" hidden>
+              </div>
+              <div id="swingHardCoverControls" hidden>
+                <div class="grid two">
+                  <label>Wall color
+                    <input type="color" id="swingHardCoverColor" value="#111111">
+                  </label>
+                  <label>Opacity
+                    <input type="number" id="swingHardCoverOpacity" min="0" max="1" step="0.05" value="0.9">
+                  </label>
+                </div>
+                <div class="grid two">
+                  <button type="button" class="toggle-btn soft" id="swingHardCoverBottomEnabledBtn" aria-pressed="false">Bottom cover</button>
+                  <label>Bottom coverage (%)
+                    <input type="number" id="swingHardCoverBottomPercent" min="0" max="100" step="1" value="25">
+                  </label>
+                  <input type="checkbox" id="swingHardCoverBottomEnabled" hidden>
+                  <button type="button" class="toggle-btn soft" id="swingHardCoverLeftEnabledBtn" aria-pressed="false">Left cover</button>
+                  <label>Left coverage (%)
+                    <input type="number" id="swingHardCoverLeftPercent" min="0" max="100" step="1" value="25">
+                  </label>
+                  <input type="checkbox" id="swingHardCoverLeftEnabled" hidden>
+                  <button type="button" class="toggle-btn soft" id="swingHardCoverRightEnabledBtn" aria-pressed="false">Right cover</button>
+                  <label>Right coverage (%)
+                    <input type="number" id="swingHardCoverRightPercent" min="0" max="100" step="1" value="25">
+                  </label>
+                  <input type="checkbox" id="swingHardCoverRightEnabled" hidden>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -581,7 +675,7 @@
       </div>
 
       <div class="shortcut-strip">
-        <div class="shortcut-card"><strong>Space bar</strong><span>Starts and stops the active drill: timed board, classifier, continuous flow, or swinger.</span></div>
+        <div class="shortcut-card"><strong>Space bar</strong><span>Starts and stops the active drill, including Activated Swinger timing.</span></div>
         <div class="shortcut-card"><strong>Esc</strong><span>Hides or shows the settings panel from the main screen.</span></div>
       </div>
 
@@ -610,8 +704,10 @@
         <article class="flow-column">
           <h3>Swinger</h3>
           <div class="flow-node"><strong>Swing shape</strong><span>The selected target shape becomes one moving target.</span></div>
-          <div class="flow-node"><strong>Arc controls</strong><ul><li>Swing rate sets speed</li><li>Target height sets swing radius</li><li>Axis height sets pivot position</li></ul></div>
-          <div class="flow-node"><strong>Run behavior</strong><span>Start or Space begins motion. Stop or Space stops motion and returns control to the settings panel.</span></div>
+          <div class="flow-node"><strong>Arc controls</strong><ul><li>Swing rate sets speed</li><li>Target height sets swing radius</li><li>Axis height sets pivot position</li><li>Show axis point marks the pivot</li></ul></div>
+          <div class="flow-node"><strong>Activated</strong><ul><li>Adds side activator targets above any hard cover</li><li>Random start delay gives the start beep</li><li>Draw time can cue a side target before activation</li><li>Activator delay waits before the swinger releases</li><li>Start lean sets whether the swinger begins down left or right</li></ul></div>
+          <div class="flow-node"><strong>Hard cover</strong><ul><li>Toggle the section on, then enable bottom, left, or right cover independently</li><li>Coverage percentages define how far each wall extends</li><li>Color and opacity are shared across the cover</li><li>Overlapping cover stays at the selected opacity</li></ul></div>
+          <div class="flow-node"><strong>Run behavior</strong><span>Normal Swinger starts moving immediately. Activated Swinger holds at the start lean, runs its beeps and delays, then swings until Stop or Space.</span></div>
         </article>
       </div>
 
@@ -686,6 +782,13 @@
         flowBypassStopwatch: $('flowBypassStopwatch'), flowBypassStopwatchBtn: $('flowBypassStopwatchBtn'),
         flowStopWatchBlock: $('flowStopWatchBlock'), flowStopMode: $('flowStopMode'), flowStopSeconds: $('flowStopSeconds'), flowStopTargets: $('flowStopTargets'), flowStopSecondsLabel: $('flowStopSecondsLabel'), flowStopTargetsLabel: $('flowStopTargetsLabel'),
         swingRate: $('swingRate'), swingTargetHeight: $('swingTargetHeight'), swingAxisHeight: $('swingAxisHeight'), useSwingPhysicalDimensions: $('useSwingPhysicalDimensions'), swingTargetHeightFt: $('swingTargetHeightFt'), swingAxisHeightFt: $('swingAxisHeightFt'), useSwingPhysicalDimensionsBtn: $('useSwingPhysicalDimensionsBtn'), swingTargetHeightFtLabel: $('swingTargetHeightFtLabel'), swingAxisHeightFtLabel: $('swingAxisHeightFtLabel'),
+        swingAxisPointVisible: $('swingAxisPointVisible'), swingAxisPointVisibleBtn: $('swingAxisPointVisibleBtn'),
+        swingActivatedEnabled: $('swingActivatedEnabled'), swingActivatedEnabledBtn: $('swingActivatedEnabledBtn'), swingActivatedControls: $('swingActivatedControls'), swingActivatedLean: $('swingActivatedLean'), swingActivatedDelayMin: $('swingActivatedDelayMin'), swingActivatedDelayMax: $('swingActivatedDelayMax'), swingActivatedDrawTime: $('swingActivatedDrawTime'), swingActivatedDelay: $('swingActivatedDelay'), swingActivatorShape: $('swingActivatorShape'), swingActivatorColor: $('swingActivatorColor'), swingActivatorColorLabel: $('swingActivatorColorLabel'), swingActivatorSize: $('swingActivatorSize'), swingActivatorYOffset: $('swingActivatorYOffset'), swingActivatorLeftX: $('swingActivatorLeftX'), swingActivatorRightX: $('swingActivatorRightX'),
+        swingHardCoverEnabled: $('swingHardCoverEnabled'), swingHardCoverEnabledBtn: $('swingHardCoverEnabledBtn'), swingHardCoverControls: $('swingHardCoverControls'),
+        swingHardCoverBottomEnabled: $('swingHardCoverBottomEnabled'), swingHardCoverBottomEnabledBtn: $('swingHardCoverBottomEnabledBtn'), swingHardCoverBottomPercent: $('swingHardCoverBottomPercent'),
+        swingHardCoverLeftEnabled: $('swingHardCoverLeftEnabled'), swingHardCoverLeftEnabledBtn: $('swingHardCoverLeftEnabledBtn'), swingHardCoverLeftPercent: $('swingHardCoverLeftPercent'),
+        swingHardCoverRightEnabled: $('swingHardCoverRightEnabled'), swingHardCoverRightEnabledBtn: $('swingHardCoverRightEnabledBtn'), swingHardCoverRightPercent: $('swingHardCoverRightPercent'),
+        swingHardCoverColor: $('swingHardCoverColor'), swingHardCoverOpacity: $('swingHardCoverOpacity'),
         presetSelect: $('presetSelect'), savePreset: $('savePreset'), deletePreset: $('deletePreset'), exportPresets: $('exportPresets'), importPresets: $('importPresets'), importPresetFile: $('importPresetFile'),
         helpBtn: $('helpBtn'), helpOverlay: $('helpOverlay'), helpClose: $('helpClose'),
         calibrateBtn: $('calibrateBtn'), calibrationOverlay: $('calibrationOverlay'), calibrationClose: $('calibrationClose'), calibrationCard: $('calibrationCard'),
@@ -751,6 +854,7 @@
         runState: runState,
         targetSystem: targetSystem,
         motionSystem: motionSystem,
+        audio: audio,
         getState: function(){ return swingerState; },
         setState: function(value){ swingerState = value; },
         getRafId: function(){ return swingerRafId; },
@@ -758,6 +862,8 @@
         setStatus: function(text){ setStatus(text); },
         setBoardHidden: function(hidden){ setBoardHidden(hidden); },
         setAwaitingReveal: function(value){ awaitingReveal = value; },
+        addTimer: function(timerId){ timers.push(timerId); },
+        readRandomStartDelay: function(){ return readRandomStartDelay(); },
         stopRun: function(skipStatus){ stopRun(skipStatus); }
       });
       var timerMode = modules.timerMode.createTimerMode({
@@ -1022,9 +1128,12 @@
       }
 
       function updateClassifierProcedure(){
-        if(!els.classifierProcedure){ return; }
         var classifierApi = window.TargetTrainer && window.TargetTrainer.classifiers ? window.TargetTrainer.classifiers : null;
         var classifierDef = classifierApi && classifierApi.getClassifierById ? classifierApi.getClassifierById(els.classifierSelect && els.classifierSelect.value) : null;
+        if(els.classifierSummary){
+          els.classifierSummary.textContent = classifierDef && classifierDef.summary ? classifierDef.summary : '';
+        }
+        if(!els.classifierProcedure){ return; }
         var text = classifierDef && classifierDef.stageProcedure ? classifierDef.stageProcedure : '';
         els.classifierProcedure.value = text;
         els.classifierProcedure.textContent = text;
@@ -1102,6 +1211,25 @@
         syncToggleButton(els.flowAlternateBtn, els.flowAlternate, 'Alternate opposite edge', 'Alternate opposite edge');
         syncToggleButton(els.flowBypassStopwatchBtn, els.flowBypassStopwatch, 'Bypass stopwatch', 'Bypass stopwatch');
         syncToggleButton(els.useSwingPhysicalDimensionsBtn, els.useSwingPhysicalDimensions, 'Swing dimensions by target distance', 'Swing dimensions by target distance');
+        syncToggleButton(els.swingAxisPointVisibleBtn, els.swingAxisPointVisible, 'Show axis point', 'Show axis point');
+        syncToggleButton(els.swingActivatedEnabledBtn, els.swingActivatedEnabled, 'Activated', 'Activated');
+        syncToggleButton(els.swingHardCoverEnabledBtn, els.swingHardCoverEnabled, 'Hard cover', 'Hard cover');
+        syncToggleButton(els.swingHardCoverBottomEnabledBtn, els.swingHardCoverBottomEnabled, 'Bottom cover', 'Bottom cover');
+        syncToggleButton(els.swingHardCoverLeftEnabledBtn, els.swingHardCoverLeftEnabled, 'Left cover', 'Left cover');
+        syncToggleButton(els.swingHardCoverRightEnabledBtn, els.swingHardCoverRightEnabled, 'Right cover', 'Right cover');
+      }
+
+      function updateSwingActivatedUI(){
+        var active = !!(els.swingActivatedEnabled && els.swingActivatedEnabled.checked);
+        var shape = els.swingActivatorShape && els.swingActivatorShape.value ? els.swingActivatorShape.value : 'uspsa';
+        var plainColorShape = shape === 'circle' || shape === 'square';
+        if(els.swingActivatedControls){ els.swingActivatedControls.hidden = !active; }
+        if(els.swingActivatorColorLabel){ els.swingActivatorColorLabel.hidden = !active || !plainColorShape; }
+      }
+
+      function updateSwingHardCoverUI(){
+        var active = !!(els.swingHardCoverEnabled && els.swingHardCoverEnabled.checked);
+        if(els.swingHardCoverControls){ els.swingHardCoverControls.hidden = !active; }
       }
 
       function setMenuCollapsed(collapsed){
@@ -1119,7 +1247,7 @@
           return;
         }
         if(isSwingerMode()){
-          startSwingerRun();
+          await startSwingerRun();
           return;
         }
         await ensureAudio();
@@ -1281,6 +1409,8 @@
         if(els.darkBoardBtn){ els.darkBoardBtn.hidden = false; }
         updatePanelOrder();
         updateContinuousStopWatchUI();
+        updateSwingActivatedUI();
+        updateSwingHardCoverUI();
         updateTimerModeUI(motionMode);
         toggleSizeInputs();
         syncAllToggleButtons();

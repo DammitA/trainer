@@ -1,114 +1,60 @@
 # Target Training App
 
-`Target Training App` is a single-page browser tool for visual drills. It combines configurable targets, audio start/stop cues, and a continuous moving-target mode in one self-contained `index.html` file.
+`Target Training App` is a single-page browser tool for visual target drills. It combines configurable target shapes, timer beeps, continuous moving targets, swinger motion, presets, and screen calibration in one self-contained `index.html` file.
 
-It is designed for quick local use: open the page in a browser, adjust settings, and start training. No build step, server, or external dependencies are required.
+It is designed for local use: open the page in a modern browser, adjust settings, and start training. No build step, server, or external dependencies are required.
 
 ## Features
 
-- Timed board mode with randomized start delay and configurable work duration
-- Continuous flow mode with moving targets that spawn until stopped
-- Configurable start and stop beeps with test buttons
-- Circular or square targets
-- Fixed target color or rotating bright color palette
-- White or black board background
-- Fixed-size or randomized-size targets
-- Random or grid target layout in board mode
-- Optional numbered targets
-- Optional hide-until-start behavior in timed mode
-- Presets saved locally in the browser
-- Last-used settings restored automatically on the same device
-- Keyboard shortcut support for start/stop
+- Three modes: `Timed board`, `Continuous flow`, and `Swinger`
+- Three timer styles for timed board drills: `Single Par Time`, `Reload separated par`, and `Shot Defined Par`
+- Built-in default presets plus user presets stored in browser `localStorage`
+- CSV preset import and export
+- Target shapes: circle, square, NRA D1, USPSA, IPSC Mini, and bowling pin
+- Fixed target sizing, randomized target sizing, or calibrated distance-based sizing for dimensioned targets
+- Optional numbered targets, bright color cycling, black background, grid layout, and hide-until-start behavior
+- Screen calibration with a credit-card reference rectangle
+- Keyboard shortcuts for start/stop and settings visibility
 
 ## Files
 
-- [index.html](/home/alex/Documents/Shooting/trainer/index.html): complete application, including markup, styles, and JavaScript
+- [index.html](/home/alex/Documents/Shooting/dammit/usr/share/html/dammit_org/trainer/index.html): complete application, including markup, styles, and JavaScript
 
 ## Getting Started
 
 1. Open `index.html` in a modern desktop browser.
-2. Allow audio playback if the browser prompts or blocks sound.
-3. Configure the session mode and target options.
-4. Press `Start`.
-5. Press `Stop` at any time, or let timed mode finish automatically.
+2. Use `Help` for an in-page overview of modes and shortcuts.
+3. Optionally press `Calibrate Screen` and match the rectangle to a credit card.
+4. Pick a mode or preset.
+5. Tune the visible settings.
+6. Press `Start`, or press the space bar.
 
-There is no installation step. The app is entirely client-side.
+The app is entirely client-side.
 
-## How It Works
+## Keyboard Controls
 
-The app has two session modes:
+- `Space`: starts or stops the active drill, including timers, continuous flow, and swinger motion
+- `Esc`: hides or shows the settings pane
+
+Starting a drill does not automatically hide the settings pane. Use `Hide` or `Esc` when you want the board unobstructed.
+
+## Modes
 
 ### Timed Board
 
-In `Timed board`, a static set of targets is rendered on the board. When you start a run:
+Timed board renders a static set of targets and runs a beep-defined drill. The timer mode selector controls the drill structure:
 
-1. The app chooses a random delay between `Random start delay` min and max.
-2. A start beep is played at the chosen time.
-3. The run stays active for the configured `Work window after start`.
-4. A stop beep is played at the end.
-5. The run resets automatically.
+- `Single Par Time`: random start delay, start beep, one engagement window, stop beep
+- `Reload separated par`: random start delay followed by repeated engagement windows separated by reload time
+- `Shot Defined Par`: random start delay, first shot time, shots per string, split time, reload count, and reload time
 
-If `Hide until start beep` is enabled, the targets remain hidden until the start beep fires.
+If `Hide until start beep` is enabled, targets stay hidden until the start beep.
 
 ### Continuous Flow
 
-In `Continuous flow`, the timer panel is ignored. The app continuously creates targets and moves them across the board until you press `Stop`.
+Continuous flow ignores the timer panel and creates moving targets until stopped. It supports direction, edge behavior, flow speed, and creation rate.
 
-Continuous mode uses:
-
-- `Spawn source`
-- `Start positions`
-- `Alternate opposite edge`
-- `Flow speed`
-- `Creation rate`
-
-## Controls
-
-### Presets
-
-- `Load preset`: loads a previously saved configuration
-- `Save Preset`: stores the current settings under a chosen name
-- `Delete Preset`: removes the selected preset
-
-Presets are stored in browser `localStorage`, not on disk as separate files.
-
-### Mode
-
-- `Timed board`: static board with beeps and a finite run
-- `Continuous flow`: moving targets with no timer
-
-### Timing & Beeps
-
-These controls apply to `Timed board` mode:
-
-- `Random start delay (s)`: minimum and maximum delay before the start beep
-- `Work window after start (s)`: active drill duration after the start beep
-- `Start beep frequency (Hz)`: pitch of the start cue
-- `Start beep length (s)`: duration of the start cue
-- `Stop beep frequency (Hz)`: pitch of the stop cue
-- `Stop beep length (s)`: duration of the stop cue
-- `Test start beep`: preview the configured start cue
-- `Test stop beep`: preview the configured stop cue
-
-### Target Board
-
-These controls define how targets look and how static boards are built:
-
-- `Number of targets`: count of targets in timed board mode
-- `Shape`: `Circle` or `Square`
-- `Target color`: base color when palette cycling is off
-- `Arrangement`: `Random placement` or `Grid layout`
-- `Number targets`: overlays numeric labels
-- `Cycle bright colors`: rotates targets through a built-in bright color palette instead of using one fixed color
-- `Black background`: switches the training board from white to black
-- `Randomize size`: enables target size sampling within a range
-- `Hide until start beep`: timed mode only; hides targets until the run begins
-- `Target size (px)`: fixed size when random sizing is off
-- `Min size (px)` and `Max size (px)`: size range when random sizing is on
-
-### Continuous Flow
-
-These controls apply to `Continuous flow` mode:
+Useful controls include:
 
 - `Spawn source`
 - `Start positions`
@@ -116,217 +62,82 @@ These controls apply to `Continuous flow` mode:
 - `Flow speed (px/s)`
 - `Creation rate (targets/s)`
 
-#### Spawn Source
+### Swinger
 
-Options:
+Swinger mode ignores the timer panel and animates a single target around a configurable pivot. Space bar, `Start`, and `Stop` pause and resume the same motion state.
 
-- `Left to right`
-- `Right to left`
-- `Top to bottom`
-- `Bottom to top`
-- `Around border`
+Useful controls include:
 
-For the single-edge options, targets enter from the chosen side and move straight across the board.
+- swing width
+- swing height
+- axis height
+- period
+- angle range
 
-For `Around border`, targets spawn from points around the full perimeter and travel toward the point mirrored across the center of the board. Examples:
+## Presets
 
-- bottom-left corner travels toward top-right
-- bottom-center travels toward top-center
-- left-center travels toward right-center
+Presets store the current Trainer settings. The app includes default presets, and users may delete them like any other preset. If a deleted default preset is later imported, it becomes available again.
 
-#### Start Positions
+Preset actions:
 
-Options:
+- `Save Preset`: saves the current settings under a chosen name
+- `Delete Preset`: removes the selected preset
+- `Export`: downloads all current presets as CSV
+- `Import`: imports presets from CSV and merges them into the current preset list
 
-- `Random along edge`
-- `Ordered sequence`
+The CSV format is:
 
-Behavior depends on `Spawn source`:
+```csv
+name,preset_json
+"Classic Bowling Pins","{...}"
+```
 
-- For single-edge spawns, `Random` selects random offsets along the edge.
-- For single-edge spawns, `Ordered` walks through offsets in sequence.
-- For border spawns, `Random` selects random points around the perimeter.
-- For border spawns, `Ordered` walks around the perimeter in sequence.
+`preset_json` is the normalized settings object used by the app. Imported presets with the same name overwrite the local preset of that name.
 
-#### Alternate Opposite Edge
+## Screen Calibration
 
-This toggle affects continuous spawning differently depending on the selected source:
+`Calibrate Screen` opens a credit-card-sized reference rectangle. Adjust the rectangle height until a physical credit card matches it, then press `Confirm`. The app saves the resulting `px/in` value in browser `localStorage`.
 
-- With a single edge selected, targets alternate between the chosen edge and its opposite.
-  Example: `Left to right` alternates `left`, `right`, `left`, `right`.
-- With `Ordered sequence` plus `Around border`, spawns occur in paired positions that are roughly half a perimeter apart, so adjacent targets appear nearly 180 degrees apart while the sequence still advances around the screen.
-- With `Random along edge` plus `Around border`, the toggle does not create a paired perimeter sequence; border spawning remains random.
+The calibration button also acts as a status indicator:
 
-#### Flow Speed
+- red text and `uncalibrated` means no screen calibration is saved
+- green text and `calibration XX px/in` means distance sizing is available
 
-`Flow speed (px/s)` controls target velocity magnitude.
+Calibration is specific to the current browser, display, zoom level, and operating system scaling. Recalibrate if any of those change.
 
-- Higher values make targets cross the board faster.
-- In border mode, the speed is applied along the computed diagonal or mirrored trajectory.
+## Distance Sizing
 
-#### Creation Rate
+When calibration exists and the selected target has known real dimensions, the Target Board panel can switch from pixel sizing to distance-based sizing.
 
-`Creation rate (targets/s)` controls how many moving targets are generated over time.
+The app uses:
 
-The app accumulates elapsed time and spawns new targets at the configured rate while the continuous run is active.
+```text
+display height = real target height * distance from screen / simulated target distance
+```
 
-## Status Display
+The same scale applies to width. `Distance from screen` is entered in feet, and `Desired target distance` is entered in yards. IPSC Mini dimensions are converted from centimeters; NRA D1, USPSA, and bowling pin dimensions use inch-based source dimensions.
 
-The status panel shows:
-
-- `Status`: current app state such as `Idle`, `Waiting for start beep…`, `Run active`, `Continuous flow active`, `Stopped`, or `Completed`
-- `Start in`: countdown to the timed start cue
-- `Stop in`: countdown to the timed stop cue
-- `Selected delay`: the exact randomized delay chosen for the current timed run
-
-In continuous mode, the countdown fields are not used.
-
-## Runtime Behavior
-
-### Start / Stop Buttons
-
-- `Start`: starts either the timed run or the continuous flow run, depending on the selected mode
-- `Stop`: stops the current run immediately
-- `Show settings` / `Hide settings`: collapses or expands the settings pane
-
-When a run starts, the settings pane auto-collapses to maximize board space.
-
-### Keyboard Shortcut
-
-- `Space`: toggles start/stop
-
-This works even when the settings panel is hidden.
+Large targets are allowed to clip at the board edges.
 
 ## Persistence
 
-The app stores data in browser `localStorage`:
+The app stores these values in browser `localStorage`:
 
 - last-used settings
-- saved presets
+- user presets
+- default preset deletion markers
+- screen calibration
 
-That means:
-
-- settings persist across page reloads on the same browser/profile
-- presets are local to the device/browser profile
-- clearing site storage removes saved state
-
-## Rendering Details
-
-### Board Mode Layout
-
-Timed board mode supports two layout strategies:
-
-- `Random placement`: the app samples candidate positions and favors placements with lower overlap penalty
-- `Grid layout`: the app computes rows and columns from board aspect ratio, then fits targets inside cells
-
-### Target Sizing
-
-When `Randomize size` is enabled:
-
-- each target samples a size between `Min size` and `Max size`
-- the app normalizes the range if the values are entered in reverse
-
-### Target Colors
-
-When `Cycle bright colors` is enabled, targets rotate through a predefined bright palette instead of using the color picker value.
-
-The palette is applied consistently in:
-
-- timed board rendering
-- continuous moving-target creation
-
-### Text Contrast
-
-The app computes a contrasting text color for numbered targets based on the target fill color so labels remain readable.
+This means settings are local to one browser profile. Clearing site storage removes them.
 
 ## Audio Notes
 
-The beeps are generated with the browser Web Audio API.
-
-Practical implications:
-
-- the browser may require a user interaction before audio can play
-- the `Test start beep` and `Test stop beep` buttons are useful for confirming audio access
-- if the browser is muted or blocked from autoplay/audio output, cues may not be audible
+The beeps use the browser Web Audio API. Browsers may require a user interaction before audio can play, so use the test beep buttons if cues are not audible.
 
 ## Limitations
 
 - This is a single-file browser app, not a packaged application
-- Presets are local to one browser profile
-- There is no export/import for presets yet
+- Presets and calibration are local to one browser profile unless exported
 - There is no scoring, hit detection, or session logging
-- Continuous mode does not currently avoid collisions between moving targets
-- Border-mode alternating logic is specifically implemented for the ordered perimeter sequence
-
-## Customization Notes
-
-Because the project is a single `index.html` file, the easiest ways to extend it are:
-
-- add new controls in the settings panels
-- extend `currentSettings()` and `applySettings()` for persistence
-- update rendering helpers for new target behaviors
-- adjust CSS variables and board classes for theme work
-
-## Suggested Usage Patterns
-
-### Reaction Drill
-
-- Mode: `Timed board`
-- Delay: `1.0` to `3.0`
-- Work window: `3` to `6` seconds
-- Hide until start beep: enabled
-- Numbered targets: enabled
-
-### Target Identification Drill
-
-- Mode: `Timed board`
-- Grid layout
-- Numbered targets enabled
-- Black background enabled
-- Fixed size targets
-
-### Tracking Drill
-
-- Mode: `Continuous flow`
-- Spawn source: `Around border`
-- Start positions: `Ordered sequence`
-- Alternate opposite edge: enabled
-- Moderate flow speed
-- Low to medium creation rate
-
-### Chaos Scan Drill
-
-- Mode: `Continuous flow`
-- Spawn source: `Around border`
-- Start positions: `Random along edge`
-- Cycle bright colors: enabled
-- Randomize size: enabled
-
-## Browser Compatibility
-
-The app targets modern browsers with support for:
-
-- `requestAnimationFrame`
-- `localStorage`
-- Web Audio API
-- standard DOM APIs
-
-Recent Chrome, Edge, Firefox, and Safari versions should work.
-
-## Development
-
-There is no build tooling in this directory. To modify the app:
-
-1. Edit [index.html](/home/alex/Documents/Shooting/trainer/index.html)
-2. Reload the page in the browser
-3. Test both `Timed board` and `Continuous flow`
-4. Verify saved settings and presets still load correctly
-
-## Summary
-
-This page is a lightweight, configurable target-training tool with two main workflows:
-
-- a timed, beep-driven static board
-- an endless moving-target flow system
-
-It is intentionally simple to run and simple to modify, while still supporting a fairly broad set of drill patterns through the combinations of layout, timing, color, size, and spawn controls.
+- Continuous flow does not avoid collisions between moving targets
+- SVG target art is functional but may be refined after user feedback
