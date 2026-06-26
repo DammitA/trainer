@@ -1,3 +1,7 @@
+/*
+ * SPDX-FileCopyrightText: 2026 Alexander Doner
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
 (function(global){
   'use strict';
 
@@ -153,6 +157,18 @@
           opts.fillPresetSelect(name);
         });
       }
+      document.querySelectorAll('[data-preset-hotkey]').forEach(function(select){
+        select.addEventListener('change', function(e){
+          opts.assignPresetHotkey(e.target.getAttribute('data-preset-hotkey'), e.target.value);
+        });
+      });
+      if(els.quickPresetSelect){
+        els.quickPresetSelect.addEventListener('change', function(e){
+          var slot = e.target.value;
+          if(!slot) return;
+          opts.loadPresetBySlot(slot);
+        });
+      }
       if(els.deletePreset){
         els.deletePreset.addEventListener('click', function(){
           var name = els.presetSelect ? els.presetSelect.value : '';
@@ -171,10 +187,7 @@
         els.presetSelect.addEventListener('change', function(e){
           var name = e.target.value;
           if(!name) return;
-          var presets = opts.loadPresetStore();
-          if(!presets[name]) return;
-          if(opts.isRunActive()){ opts.stopRun(true); }
-          opts.applySettings(presets[name]);
+          opts.loadPresetByName(name);
         });
       }
       if(els.exportPresets){ els.exportPresets.addEventListener('click', opts.exportPresetCsv); }
@@ -197,6 +210,10 @@
           return;
         }
         if(isFormField){ return; }
+        if(/^[1-9]$/.test(e.key)){
+          if(opts.loadPresetBySlot(e.key)){ e.preventDefault(); }
+          return;
+        }
         if(e.code === 'Space'){
           e.preventDefault();
           if(opts.isRunActive()){ opts.stopRun(false); }

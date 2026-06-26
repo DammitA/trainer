@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<!--
+SPDX-FileCopyrightText: 2026 Alexander Doner
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
 <html lang="en"><head>
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta charset="utf-8">
@@ -208,9 +212,17 @@
     body.board-dark #targetBoard{background:#000;color:#f2f6ff;}
     body.board-dark #targetBoard::after{box-shadow:inset 0 0 0 1px rgba(255,255,255,0.1);}
     body.board-dark .board-area::after{box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06);}
-    .corner-controls{position:absolute;top:20px;right:20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;z-index:10;background:rgba(14,20,29,0.72);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:10px 12px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+    .corner-controls{position:absolute;top:20px;right:20px;display:grid;gap:8px;z-index:10;background:rgba(14,20,29,0.72);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:10px 12px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);min-width:280px;}
+    .corner-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
     .corner-controls button{padding:10px 16px;border-radius:10px;font-size:14px;}
     .corner-controls .ghost{background:rgba(27,37,53,0.65);}
+    .corner-preset{display:grid;gap:6px;}
+    .corner-preset-status{font-size:12px;color:var(--muted);min-height:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .corner-preset select{width:100%;background:rgba(16,24,39,0.84);border:1px solid rgba(255,255,255,0.12);border-radius:10px;color:var(--text);padding:8px 10px;font-size:13px;}
+    .hotkey-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+    .hotkey-slot{display:grid;gap:5px;min-width:0;}
+    .hotkey-slot span{font-size:12px;color:var(--muted);}
+    .hotkey-slot select{width:100%;min-width:0;font-size:12px;padding:8px 9px;}
 
     .target{position:absolute;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;line-height:1;pointer-events:none;user-select:none;transition:transform .3s ease,opacity .3s ease;box-shadow:0 10px 24px rgba(0,0,0,0.22);}
     .target.circle{border-radius:50%;}
@@ -224,8 +236,10 @@
     .target span{display:flex;align-items:center;justify-content:center;padding:0.2em 0.5em;border-radius:0.6em;background:rgba(0,0,0,0.25);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);min-width:1.4em;}
     #targetBoard.targets-hidden .target{opacity:0;}
     @media (max-width:720px){
-      .corner-controls{top:12px;right:12px;gap:8px;}
-      .corner-controls button{width:100%;}
+      .corner-controls{top:12px;right:12px;left:12px;gap:8px;min-width:0;}
+      .corner-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+      .corner-controls button{width:100%;padding:10px 8px;}
+      .hotkey-grid{grid-template-columns:1fr;}
     }
   </style>
 </head>
@@ -267,6 +281,17 @@
                 <button id="deletePreset" class="danger preset-secondary" type="button">Delete</button>
                 <input id="importPresetFile" type="file" accept=".csv,text/csv" hidden>
               </div>
+            </div>
+            <div class="hotkey-grid" id="presetHotkeyGrid" aria-label="Preset hotkey assignments">
+              <label class="hotkey-slot"><span>1</span><select id="presetHotkey1" data-preset-hotkey="1"></select></label>
+              <label class="hotkey-slot"><span>2</span><select id="presetHotkey2" data-preset-hotkey="2"></select></label>
+              <label class="hotkey-slot"><span>3</span><select id="presetHotkey3" data-preset-hotkey="3"></select></label>
+              <label class="hotkey-slot"><span>4</span><select id="presetHotkey4" data-preset-hotkey="4"></select></label>
+              <label class="hotkey-slot"><span>5</span><select id="presetHotkey5" data-preset-hotkey="5"></select></label>
+              <label class="hotkey-slot"><span>6</span><select id="presetHotkey6" data-preset-hotkey="6"></select></label>
+              <label class="hotkey-slot"><span>7</span><select id="presetHotkey7" data-preset-hotkey="7"></select></label>
+              <label class="hotkey-slot"><span>8</span><select id="presetHotkey8" data-preset-hotkey="8"></select></label>
+              <label class="hotkey-slot"><span>9</span><select id="presetHotkey9" data-preset-hotkey="9"></select></label>
             </div>
             <p class="note">Your custom presets will be saved in your browser cache, and can be exported.</p>
           </div>
@@ -656,9 +681,15 @@
 
     <section class="board-area" id="boardArea">
       <div class="corner-controls">
-        <button id="startBtn" class="primary">Start</button>
-        <button id="stopBtn" class="danger" disabled="disabled">Stop</button>
-        <button id="toggleMenu" class="ghost" aria-expanded="true">Hide settings</button>
+        <div class="corner-actions">
+          <button id="startBtn" class="primary">Start</button>
+          <button id="stopBtn" class="danger" disabled="disabled">Stop</button>
+          <button id="toggleMenu" class="ghost" aria-expanded="true">Settings</button>
+        </div>
+        <div class="corner-preset">
+          <div id="activePresetDisplay" class="corner-preset-status">No preset selected</div>
+          <select id="quickPresetSelect" title="Load assigned preset"><option value="">Assigned presets...</option></select>
+        </div>
       </div>
       <div id="targetBoard" class="board"></div>
     </section>
@@ -790,6 +821,7 @@
         swingHardCoverRightEnabled: $('swingHardCoverRightEnabled'), swingHardCoverRightEnabledBtn: $('swingHardCoverRightEnabledBtn'), swingHardCoverRightPercent: $('swingHardCoverRightPercent'),
         swingHardCoverColor: $('swingHardCoverColor'), swingHardCoverOpacity: $('swingHardCoverOpacity'),
         presetSelect: $('presetSelect'), savePreset: $('savePreset'), deletePreset: $('deletePreset'), exportPresets: $('exportPresets'), importPresets: $('importPresets'), importPresetFile: $('importPresetFile'),
+        quickPresetSelect: $('quickPresetSelect'), activePresetDisplay: $('activePresetDisplay'),
         helpBtn: $('helpBtn'), helpOverlay: $('helpOverlay'), helpClose: $('helpClose'),
         calibrateBtn: $('calibrateBtn'), calibrationOverlay: $('calibrationOverlay'), calibrationClose: $('calibrationClose'), calibrationCard: $('calibrationCard'),
         calibrationHeight: $('calibrationHeight'), calibrationConfirm: $('calibrationConfirm'), calibrationStatus: $('calibrationStatus'), calibrationIndicator: $('calibrationIndicator')
@@ -889,6 +921,7 @@
       var BEEP_KEY = 'targetTrainer_beepSettings_v1';
       var PRESET_KEY = 'targetTrainer_presets_v1';
       var PRESET_DELETED_KEY = 'targetTrainer_deletedDefaultPresets_v1';
+      var PRESET_ASSIGNMENT_KEY = 'targetTrainer_presetAssignments_v1';
       var CALIBRATION_KEY = 'targetTrainer_screenCalibration_v1';
       var settings = modules.settings;
       var normalizeSettings = settings.normalizeSettings;
@@ -1062,6 +1095,8 @@
       function saveDeletedPresetStore(data){ writeStore(PRESET_DELETED_KEY, data || {}); }
       function loadPresetStore(){ return withDefaultPresets(readStore(PRESET_KEY) || {}); }
       function savePresetStore(data){ writeStore(PRESET_KEY, data || {}); }
+      function loadPresetAssignments(){ return normalizePresetAssignments(readStore(PRESET_ASSIGNMENT_KEY) || {}, loadPresetStore()); }
+      function savePresetAssignments(data){ writeStore(PRESET_ASSIGNMENT_KEY, normalizePresetAssignments(data || {}, loadPresetStore())); }
       function loadCalibration(){ return readStore(CALIBRATION_KEY) || {}; }
       function saveCalibration(data){ writeStore(CALIBRATION_KEY, data || {}); }
 
@@ -1091,6 +1126,18 @@
           delete deletedDefaults[name];
           saveDeletedPresetStore(deletedDefaults);
         }
+      }
+
+      function normalizePresetAssignments(assignments, presets){
+        var normalized = {};
+        assignments = (assignments && typeof assignments === 'object') ? assignments : {};
+        presets = presets || {};
+        for(var i = 1; i <= 9; i++){
+          var slot = String(i);
+          var name = assignments[slot];
+          if(name && presets[name]){ normalized[slot] = name; }
+        }
+        return normalized;
       }
 
       function currentBeepSettings(){
@@ -1149,7 +1196,8 @@
       function updateMenuToggle(){
         if(!els.toggleMenu) return;
         var collapsed = root.classList.contains('menu-collapsed');
-        els.toggleMenu.textContent = collapsed ? 'Show settings' : 'Hide settings';
+        els.toggleMenu.textContent = 'Settings';
+        els.toggleMenu.title = collapsed ? 'Show settings' : 'Hide settings';
         els.toggleMenu.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
       }
 
@@ -1491,9 +1539,87 @@
       function persistBeepSettings(){ saveBeepSettings(currentBeepSettings()); }
 
       function fillPresetSelect(selected){
-        if(!els.presetSelect) return;
         var presets = loadPresetStore();
-        modules.presets.fillPresetSelect(els.presetSelect, presets, selected);
+        if(els.presetSelect){ modules.presets.fillPresetSelect(els.presetSelect, presets, selected); }
+        fillPresetAssignmentControls(presets);
+        fillQuickPresetSelect(presets);
+      }
+
+      function fillSelectWithPresets(select, presets, emptyText, selected){
+        if(!select) return;
+        while(select.firstChild){ select.removeChild(select.firstChild); }
+        var emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = emptyText;
+        select.appendChild(emptyOption);
+        Object.keys(presets || {}).sort().forEach(function(name){
+          var option = document.createElement('option');
+          option.value = name;
+          option.textContent = name;
+          select.appendChild(option);
+        });
+        select.value = selected && presets[selected] ? selected : '';
+      }
+
+      function getPresetHotkeySelects(){
+        return Array.prototype.slice.call(document.querySelectorAll('[data-preset-hotkey]'));
+      }
+
+      function fillPresetAssignmentControls(presets){
+        var assignments = loadPresetAssignments();
+        getPresetHotkeySelects().forEach(function(select){
+          var slot = select.getAttribute('data-preset-hotkey');
+          fillSelectWithPresets(select, presets, 'Unassigned', assignments[slot] || '');
+        });
+      }
+
+      function fillQuickPresetSelect(presets){
+        if(!els.quickPresetSelect) return;
+        var assignments = loadPresetAssignments();
+        while(els.quickPresetSelect.firstChild){ els.quickPresetSelect.removeChild(els.quickPresetSelect.firstChild); }
+        var emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = 'Assigned presets...';
+        els.quickPresetSelect.appendChild(emptyOption);
+        for(var i = 1; i <= 9; i++){
+          var slot = String(i);
+          var name = assignments[slot];
+          if(!name || !presets[name]){ continue; }
+          var option = document.createElement('option');
+          option.value = slot;
+          option.textContent = slot + ' - ' + name;
+          els.quickPresetSelect.appendChild(option);
+        }
+        els.quickPresetSelect.value = '';
+      }
+
+      function updateActivePresetDisplay(name, slot){
+        if(!els.activePresetDisplay) return;
+        els.activePresetDisplay.textContent = name ? (slot ? ('Preset ' + slot + ': ' + name) : ('Preset: ' + name)) : 'No preset selected';
+      }
+
+      function assignPresetHotkey(slot, name){
+        var assignments = loadPresetAssignments();
+        if(name){ assignments[String(slot)] = name; }
+        else { delete assignments[String(slot)]; }
+        savePresetAssignments(assignments);
+        fillPresetSelect(els.presetSelect ? els.presetSelect.value : '');
+      }
+
+      function loadPresetByName(name, slot){
+        var presets = loadPresetStore();
+        if(!name || !presets[name]){ return false; }
+        if(isRunActive()){ stopRun(true); }
+        applySettings(presets[name]);
+        if(els.presetSelect){ els.presetSelect.value = name; }
+        updateActivePresetDisplay(name, slot);
+        if(els.quickPresetSelect){ els.quickPresetSelect.value = ''; }
+        return true;
+      }
+
+      function loadPresetBySlot(slot){
+        var assignments = loadPresetAssignments();
+        return loadPresetByName(assignments[String(slot)], String(slot));
       }
 
       var projectedFeetToPx = targetSystem.projectedFeetToPx;
@@ -1626,6 +1752,9 @@
         updateCalibrationCard: updateCalibrationCard,
         confirmCalibration: confirmCalibration,
         fillPresetSelect: fillPresetSelect,
+        assignPresetHotkey: assignPresetHotkey,
+        loadPresetByName: loadPresetByName,
+        loadPresetBySlot: loadPresetBySlot,
         loadPresetStore: loadPresetStore,
         savePresetStore: savePresetStore,
         markDefaultPresetDeleted: markDefaultPresetDeleted,

@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 Alexander Doner
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 # Target Training App
 
 `Target Training App` is a single-page browser tool for visual target drills. It combines configurable target shapes, timer beeps, classifier layouts, continuous moving targets, swinger motion, presets, and screen calibration.
